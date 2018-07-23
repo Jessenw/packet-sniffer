@@ -41,27 +41,28 @@ class PacketHeaderBase:
             data[:self.hdr_length])
 
         pkt_dict = dict(zip(field_names, self.field_values))
+        print(pkt_dict)
         for k, v in pkt_dict.items():
             setattr(self, k, v)
 
 class Ethernet(PacketHeaderBase):
     ''' Ethernet header class. '''
-
+    # Ethernet frame: [7+1] 6 6 2
     # _fmt and _fields define the structure of an Ethernet packet
-    fmt = ''  # TODO: format string for Ethernet
-    fields = [  ]  # TODO: list of Ethernet fields
+    fmt = '! 4H 6s 6s H x x'  # TODO: format string for Ethernet
+    fields = ['preamble', 'dest', 'source', 'type', 'payload', 'crc']  # TODO: list of Ethernet fields
 
     def __init__(self, data):
         super().__init__(Ethernet.fmt, Ethernet.fields, data)
 
     def __str__(self):
-        return "Ethernet payload {}".format( binascii.hexlify(self.payload) )  # what information needs to be printed?
+        return "Ethernet payload {}, ".format( binascii.hexlify(self.payload) )  # what information needs to be printed?
 
 def process_packet(packet_data):
     ''' Function for processing a single packet '''
     parsed_pkt = dict()
 
-    print( binascii.hexlify(packet_data) )
+    # print( binascii.hexlify(packet_data) )
 
     # process the datalink header
     parsed_pkt['ethernet'] = Ethernet(packet_data)
