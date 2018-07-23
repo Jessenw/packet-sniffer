@@ -34,7 +34,6 @@ class PacketHeaderBase:
             Field names are given as an array of strings.
             For more information on struct format strings see:
               https://docs.python.org/3/library/struct.html '''
-
         self.data = data
         self.hdr_length = struct.calcsize(hdr_format)
         self.field_values = struct.unpack(
@@ -62,12 +61,14 @@ def process_packet(packet_data):
     ''' Function for processing a single packet '''
     parsed_pkt = dict()
 
-    # print( binascii.hexlify(packet_data) )
+    print( binascii.hexlify(packet_data) )
 
     # process the datalink header
     parsed_pkt['ethernet'] = Ethernet(packet_data)
 
     # use Ethernet header to decide what the next header type is, process that header.
+
+
 
 def main(pcap_filename):
     ''' Main function, loops over packets in the given file, counting and processing each. '''
