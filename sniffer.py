@@ -59,6 +59,7 @@ class PacketHeaderBase:
             # Version
             version = ip_hdr_[0]
             version_ = version >> 4 # we only want the first 4 bits
+            ihl = (version & 0xf) * 4
             if version_ == 4:
                 print('Ethernet Type: IPv4')
             elif version_ == 6:
@@ -90,6 +91,8 @@ class PacketHeaderBase:
             # undefined packet
             else:
                 print('Protocol: undefined')
+
+            print('Length: {}'.format(ihl))
 
 class Ethernet(PacketHeaderBase):
     ''' Ethernet header class. '''
@@ -127,7 +130,7 @@ def main(pcap_filename):
             break  # no more packets 
         
         count += 1
-        print("#### Packet {}:".format(count))
+        print('\nPacket #: {}'.format(count))
         process_packet( data )
 
     print("Complete. {} packets processed.".format(count))
