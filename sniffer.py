@@ -45,12 +45,22 @@ class PacketHeaderBase:
         print(pkt_dict)
         for k, v in pkt_dict.items():
             setattr(self, k, v)
-        protocol = socket.ntohs(pkt_dict['type'])
-        print('Protocol: {}'.format(protocol))
+        eth_proto = socket.ntohs(pkt_dict['type'])
+        print('Protocol: {}'.format(eth_proto))
+        if eth_proto == 8: # IP protocol
+            # get the first 20 characters for the ip header
+            if protocol == 6: # TCP
+            
+            elif protocol == 17: # UDP
+
+            elif protocol == 1: # ICMP
+
+            else: # unknown
+
 
 class Ethernet(PacketHeaderBase):
     ''' Ethernet header class. '''
-    # Ethernet frame: 6 6 2
+    # Ethernet frame (bytes): 6 6 2 x x
     # _fmt and _fields define the structure of an Ethernet packet
     fmt = '!6s6sH'  # TODO: format string for Ethernet
     fields = ['dest', 'source', 'type']  # TODO: list of Ethernet fields
@@ -71,8 +81,6 @@ def process_packet(packet_data):
     parsed_pkt['ethernet'] = Ethernet(packet_data)
 
     # use Ethernet header to decide what the next header type is, process that header.
-
-
 
 def main(pcap_filename):
     ''' Main function, loops over packets in the given file, counting and processing each. '''
