@@ -50,18 +50,23 @@ class PacketHeaderBase:
             setattr(self, k, v)
 
         eth_proto = socket.ntohs(pkt_dict['type'])
-
         dest_mac = eth_addr(str(pkt_dict['dest']))
         source_mac = eth_addr(str(pkt_dict['source']))
-        print ('Destination MAC: ' + dest_mac)
+        '''
+        print('Destination MAC: ' + dest_mac)
         print('Source MAC: ' + source_mac)
         print('Protocol: {}'.format(eth_proto))
+        print('Header length: {}'.format(self.hdr_length))
+        '''
+        print('Destination MAC: {} | Source MAC: {} | Protocol: {}'.format(dest_mac, source_mac, eth_proto))
 
         if eth_proto == 8: # IP protocol
             '''
             Protocol numbers were found at this webpage
             https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
             '''
+            min_length = 20 # min number of bytes the ip header can be
+            #ip_header = 
 
 class Ethernet(PacketHeaderBase):
     ''' Ethernet header class. '''
