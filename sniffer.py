@@ -27,10 +27,6 @@ def mac2str(mac_bytes):
     mac_pairs = [i+j for i,j in zip(mac_string[0::2], mac_string[1::2])]
     return ':'.join(mac_pairs)
 
-def eth_addr(a):
-    b = "%.2x:%.2x:%.2x:%.2x:%.2x:%.2x" % (ord(a[0]) , ord(a[1]) , ord(a[2]), ord(a[3]), ord(a[4]) , ord(a[5]))
-    return b
-
 class PacketHeaderBase:
     ''' Base class for packet headers. '''
 
@@ -49,33 +45,35 @@ class PacketHeaderBase:
         for k, v in pkt_dict.items():
             setattr(self, k, v)
 
+        '''
+        Data Link Layer
+        '''
         eth_proto = socket.ntohs(pkt_dict['type'])
-        '''
-        dest_mac = eth_addr(str(pkt_dict['dest']))
-        source_mac = eth_addr(str(pkt_dict['source']))
-        print('Destination MAC: {} | Source MAC: {} | Protocol: {}'.format(dest_mac, source_mac, eth_proto))
-        '''
-        # IP protocol
         if eth_proto == 8:
+            ''' 
+            Network Layer 
+            '''
             min_length = 20 # min number of bytes the ip header can be
             ip_hdr = data[self.hdr_length:min_length + self.hdr_length]
-            # 8 8 16 16 16 8 8 16
-            ip_hdr_ = struct.unpack('!BBHHHBBH4s4s', ip_hdr)
-
+            ip_hdr_ = struct.unpack('!BBHHHBBH4s4s', ip_hdr) # 8 8 16 16 16 8 8 16
             source_addr = socket.inet_ntoa(ip_hdr_[8])
             dest_addr = socket.inet_ntoa(ip_hdr_[9])
             print('From: {}\nTo: {}'.format(source_addr, dest_addr))
-            protocol = ip_hdr_[6]
+
             '''
-            Protocol numbers were found at this webpage
+            Transport Layer
+
+            Protocol numbers were found at this webpage:
             https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
             '''
+            protocol = ip_hdr_[6]
              # ICMP packet
             if protocol == 1:
                 print('Protocol: ICMP packet')
             # TCP packet
             elif protocol == 6:
                 print('Protocol: TCP packet')
+
             # UDP packet
             elif protocol == 17:
                 print('Protocol: UDP packet')
