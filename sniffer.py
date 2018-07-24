@@ -27,6 +27,10 @@ def mac2str(mac_bytes):
     mac_pairs = [i+j for i,j in zip(mac_string[0::2], mac_string[1::2])]
     return ':'.join(mac_pairs)
 
+def eth_addr(a):
+    b = "%.2x:%.2x:%.2x:%.2x:%.2x:%.2x" % (ord(a[0]) , ord(a[1]) , ord(a[2]), ord(a[3]), ord(a[4]) , ord(a[5]))
+    return b
+
 class PacketHeaderBase:
     ''' Base class for packet headers. '''
 
@@ -42,21 +46,22 @@ class PacketHeaderBase:
             data[:self.hdr_length])
 
         pkt_dict = dict(zip(field_names, self.field_values))
-        print(pkt_dict)
         for k, v in pkt_dict.items():
             setattr(self, k, v)
+
         eth_proto = socket.ntohs(pkt_dict['type'])
+
+        dest_mac = eth_addr(str(pkt_dict['dest']))
+        source_mac = eth_addr(str(pkt_dict['source']))
+        print ('Destination MAC: ' + dest_mac)
+        print('Source MAC: ' + source_mac)
         print('Protocol: {}'.format(eth_proto))
+
         if eth_proto == 8: # IP protocol
-            # get the first 20 characters for the ip header
-            if protocol == 6: # TCP
-            
-            elif protocol == 17: # UDP
-
-            elif protocol == 1: # ICMP
-
-            else: # unknown
-
+            '''
+            Protocol numbers were found at this webpage
+            https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
+            '''
 
 class Ethernet(PacketHeaderBase):
     ''' Ethernet header class. '''
