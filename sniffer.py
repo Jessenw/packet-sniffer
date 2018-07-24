@@ -56,6 +56,17 @@ class PacketHeaderBase:
             min_length = 20 # min number of bytes the ip header can be
             ip_hdr = data[self.hdr_length:min_length + self.hdr_length]
             ip_hdr_ = struct.unpack('!BBHHHBBH4s4s', ip_hdr) # 8 8 16 16 16 8 8 16
+            # Version
+            version = ip_hdr_[0]
+            version_ = version >> 4 # we only want the first 4 bits
+            if version_ == 4:
+                print('Ethernet Type: IPv4')
+            elif version_ == 6:
+                print('Ethernet Type: IPv6')
+            else:
+                print('Ethernet Type: undefined')
+
+            # Source and Destination IP Address
             source_addr = socket.inet_ntoa(ip_hdr_[8])
             dest_addr = socket.inet_ntoa(ip_hdr_[9])
             print('From: {}\nTo: {}'.format(source_addr, dest_addr))
@@ -73,7 +84,6 @@ class PacketHeaderBase:
             # TCP packet
             elif protocol == 6:
                 print('Protocol: TCP packet')
-
             # UDP packet
             elif protocol == 17:
                 print('Protocol: UDP packet')
