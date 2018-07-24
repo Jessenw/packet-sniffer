@@ -20,6 +20,7 @@ import binascii
 import struct
 import sys
 import ipaddress
+import socket
 
 def mac2str(mac_bytes):
     mac_string = binascii.hexlify(mac_bytes).decode('ascii')
@@ -44,13 +45,15 @@ class PacketHeaderBase:
         print(pkt_dict)
         for k, v in pkt_dict.items():
             setattr(self, k, v)
+        protocol = socket.ntohs(pkt_dict['type'])
+        print('Protocol: {}'.format(protocol))
 
 class Ethernet(PacketHeaderBase):
     ''' Ethernet header class. '''
-    # Ethernet frame: [7+1] 6 6 2
+    # Ethernet frame: 6 6 2
     # _fmt and _fields define the structure of an Ethernet packet
-    fmt = '! 4H 6s 6s H x x'  # TODO: format string for Ethernet
-    fields = ['preamble', 'dest', 'source', 'type', 'payload', 'crc']  # TODO: list of Ethernet fields
+    fmt = '!6s6sH'  # TODO: format string for Ethernet
+    fields = ['dest', 'source', 'type']  # TODO: list of Ethernet fields
 
     def __init__(self, data):
         super().__init__(Ethernet.fmt, Ethernet.fields, data)
