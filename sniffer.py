@@ -12,6 +12,15 @@ To install: python3 -m pip install pcapy -t ./pcapy/
 
 To run:     python3 sniffer.py packets_file.pcap
 Or:         tcpdump -w - | python3 ./sniffer.py -
+
+Resources used:
+IP Version numbers: https://www.iana.org/assignments/version-numbers/version-numbers.xhtml
+Python Socket Docs: https://docs.python.org/3/library/socket.html
+IP Protocol Numbers: https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers 
+Pacpy Docs: https://rawgit.com/CoreSecurity/pcapy/master/pcapy.html
+Python Struct Docs: https://docs.python.org/3/library/struct.html
+
+NWEN302 Lecture slides
 '''
 
 from pcapy import pcapy  
@@ -74,9 +83,6 @@ class PacketHeaderBase:
 
             '''
             Transport Layer
-
-            Protocol numbers were found at this webpage:
-            https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
             '''
             protocol = ip_hdr_[6]
              # ICMP packet
@@ -85,6 +91,9 @@ class PacketHeaderBase:
             # TCP packet
             elif protocol == 6:
                 print('Protocol: TCP')
+                tcp_hdr = data[self.hdr_length + ihl: self.hdr_length + ihl + min_length]
+                tcp_hdr_ = struct.unpack('!HHLLBBHHH', tcp_hdr)
+                print('Source Port: {}\nDestination Port: {}'.format(str(tcp_hdr_[0]), str(tcp_hdr_[1])))
             # UDP packet
             elif protocol == 17:
                 print('Protocol: UDP')
