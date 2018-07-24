@@ -81,13 +81,13 @@ class PacketHeaderBase:
             protocol = ip_hdr_[6]
              # ICMP packet
             if protocol == 1:
-                print('Protocol: ICMP packet')
+                print('Protocol: ICMP')
             # TCP packet
             elif protocol == 6:
-                print('Protocol: TCP packet')
+                print('Protocol: TCP')
             # UDP packet
             elif protocol == 17:
-                print('Protocol: UDP packet')
+                print('Protocol: UDP')
             # undefined packet
             else:
                 print('Protocol: undefined')
