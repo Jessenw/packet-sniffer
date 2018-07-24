@@ -50,29 +50,38 @@ class PacketHeaderBase:
             setattr(self, k, v)
 
         eth_proto = socket.ntohs(pkt_dict['type'])
+        '''
         dest_mac = eth_addr(str(pkt_dict['dest']))
         source_mac = eth_addr(str(pkt_dict['source']))
         print('Destination MAC: {} | Source MAC: {} | Protocol: {}'.format(dest_mac, source_mac, eth_proto))
-
-        if eth_proto == 8: # IP protocol
+        '''
+        # IP protocol
+        if eth_proto == 8:
             min_length = 20 # min number of bytes the ip header can be
             ip_hdr = data[self.hdr_length:min_length + self.hdr_length]
+            # 8 8 16 16 16 8 8 16
             ip_hdr_ = struct.unpack('!BBHHHBBH4s4s', ip_hdr)
-            protocol = ip_hdr_[6]
 
+            source_addr = socket.inet_ntoa(ip_hdr_[8])
+            dest_addr = socket.inet_ntoa(ip_hdr_[9])
+            print('From: {}\nTo: {}'.format(source_addr, dest_addr))
+            protocol = ip_hdr_[6]
             '''
             Protocol numbers were found at this webpage
             https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
             '''
-            if protocol == 1: # ICMP packet
-                print('ICMP packet')
-            elif protocol == 6: # TCP packet
-                print('TCP packet')
-            elif protocol == 17: # UDP packet
-                print('UDP packet')
-            else: # undefined packet
-                print('undefined packet')
-            
+             # ICMP packet
+            if protocol == 1:
+                print('Protocol: ICMP packet')
+            # TCP packet
+            elif protocol == 6:
+                print('Protocol: TCP packet')
+            # UDP packet
+            elif protocol == 17:
+                print('Protocol: UDP packet')
+            # undefined packet
+            else:
+                print('Protocol: undefined')
 
 class Ethernet(PacketHeaderBase):
     ''' Ethernet header class. '''
