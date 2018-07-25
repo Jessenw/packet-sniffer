@@ -93,7 +93,11 @@ class PacketHeaderBase:
                 print('Protocol: TCP')
                 tcp_hdr = data[self.hdr_length + ihl: self.hdr_length + ihl + min_length]
                 tcp_hdr_ = struct.unpack('!HHLLBBHHH', tcp_hdr)
+                tcpl = tcp_hdr_[4] >> 4
                 print('Source Port: {}\nDestination Port: {}'.format(str(tcp_hdr_[0]), str(tcp_hdr_[1])))
+                payload_size = len(data) - (self.hdr_length + ihl + tcpl) * 4 # total length - all headers
+                print(len(data))
+                print('Payload: {} (Bytes)'.format(payload_size))
             # UDP packet
             elif protocol == 17:
                 print('Protocol: UDP')
