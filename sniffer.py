@@ -101,6 +101,14 @@ class PacketHeaderBase:
             # UDP packet
             elif protocol == 17:
                 print('Protocol: UDP')
+                '''
+                length = self.hdr_length + ihl * 4
+                udp_hdr = data[length:length + 8]
+                udp_hdr_ = struct.unpack('!HHHH', udp_hdr)
+                src_port = udp_hdr_[0]
+                dest_port = udp_hdr_[1]
+                print('Source Port: {}\nDestination Port: {}'.format(src_port, dest_port))
+                '''
             # undefined packet
             else:
                 print('Protocol: undefined')
