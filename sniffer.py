@@ -36,6 +36,51 @@ def mac2str(mac_bytes):
     mac_pairs = [i+j for i,j in zip(mac_string[0::2], mac_string[1::2])]
     return ':'.join(mac_pairs)
 
+class DataLinkLayerHandler:
+    def __init__(self, pkt_dict, data, hdr_length):
+        type = socket.ntohs(pkt_dict['type'])
+        if type == 8: # type = ethernet
+            NetworkLayerHandler(data, hdr_length)
+        else:
+            print('undefined data link type')
+
+class NetworkLayerHandler:
+    def __init__(self, data, hdr_length):
+        ip_hdr = data[hdr_length:hdr_length + 20]
+        ip_hdr_ = struct.unpack('!BBHHHBBH4s4s', ip_hdr) # 8 8 16 16 16 8 8 16
+        version = ip_hdr_[0]
+        version_ = ip_hdr_[0] >> 4 # we only want the first 4 bits
+        ihl = (version & 0xf) * 4
+        if version_ == 4:
+            print('Ethernet Type: IPv4')
+            # Source and Destination IP Address
+            source_addr = socket.inet_ntoa(ip_hdr_[8])
+            dest_addr = socket.inet_ntoa(ip_hdr_[9])
+            print('From: {}\nTo: {}'.format(source_addr, dest_addr))
+        elif version_ == 6:
+            print('Ethernet Type: IPv6')
+        else:
+            print('Ethernet Type: undefined')
+        
+        protocol = ip_hdr_[6]
+        # ICMPv4
+        if protocol == 1 and version == 4:
+            print('Protocol: ICMPv4')
+        # ICMPv6
+        elif protocol == 1 and version == 6:
+            print('Protocol: ICMPv6')
+        # TCP
+        elif protocol == 6:
+            print('Protocol: TCP')
+        # UDP
+        elif protocol == 17:
+            print('Protocol: UDP')
+        # undefined
+        else:
+            print('Protocol: undefined')
+
+
+
 class PacketHeaderBase:
     ''' Base class for packet headers. '''
 
@@ -54,6 +99,8 @@ class PacketHeaderBase:
         for k, v in pkt_dict.items():
             setattr(self, k, v)
 
+        DataLinkLayerHandler(pkt_dict, data, self.hdr_length)
+        
         '''
         Data Link Layer
         '''
@@ -81,9 +128,6 @@ class PacketHeaderBase:
             dest_addr = socket.inet_ntoa(ip_hdr_[9])
             print('From: {}\nTo: {}'.format(source_addr, dest_addr))
 
-            '''
-            Transport Layer
-            '''
             protocol = ip_hdr_[6]
              # ICMP packet
             if protocol == 1:
@@ -120,7 +164,7 @@ class Ethernet(PacketHeaderBase):
     # Ethernet frame (bytes): 6 6 2 x x
     # _fmt and _fields define the structure of an Ethernet packet
     fmt = '!6s6sH'  # TODO: format string for Ethernet
-    fields = ['dest', 'source', 'type']  # TODO: list of Ethernet fields
+    fields = ['dest', 'source', 'type', 'data']  # TODO: list of Ethernet fields
 
     def __init__(self, data):
         super().__init__(Ethernet.fmt, Ethernet.fields, data)
