@@ -43,11 +43,15 @@ http://microchipdeveloper.com/tcpip:tcp-ip-data-link-layer-layer-2
 '''
 class DataLinkLayerHandler:
     def __init__(self, pkt_dict, data, hdr_length):
-        type = socket.ntohs(pkt_dict['type'])
-        if type == 8: # type = ethernet
+        #type = socket.ntohs(pkt_dict['type'])
+        type = str(pkt_dict['type'])
+        # IPv4 = 0x86DD = 2048
+        # IPv6 = 0x86DD = 34525
+        if type == '2048' or type == '34525':
             NetworkLayerHandler(data, hdr_length)
+        elif type == '34525':
         else:
-            print('undefined data link type')
+            print('DataLink Type: undefined. Type = {}'.format(type))
 
 class NetworkLayerHandler:
     def __init__(self, data, hdr_length):
