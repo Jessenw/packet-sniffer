@@ -37,7 +37,7 @@ def mac2str(mac_bytes):
     return ':'.join(mac_pairs)
 
 '''
-Handles the DataLink header. For this assignment, we only care about ethernet
+Handles the DataLink header. For this assignment, we only care about ethernet.
 Ethernet format diagram can be found here:
 http://microchipdeveloper.com/tcpip:tcp-ip-data-link-layer-layer-2
 '''
@@ -81,15 +81,12 @@ class NetworkLayerHandler:
 
 class TCPHandler:
     def __init__(self, data, hdr_length):
+        print("Protocol: TCP")
         tcp_hdr = data[hdr_length:hdr_length + 20]
         tcp_hdr_ = struct.unpack('!HHLLBBHHH', tcp_hdr) # HHLLBBHHH
         src_port = tcp_hdr_[0]
         dest_port = tcp_hdr_[1]
         print('Src Port: {}\nDst Port: {}'.format(str(src_port), str(dest_port)))
-        tcp_hdr_len = (hdr_length + 20) / 4
-        data_size = len(data) - tcp_hdr_len
-        print('TCP Header Length: {}'.format(tcp_hdr_len))
-        print('Payload: ({})'.format(data_size))
 
 class PacketHeaderBase:
     ''' Base class for packet headers. '''
