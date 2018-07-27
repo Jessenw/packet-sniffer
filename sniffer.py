@@ -98,8 +98,10 @@ class IPv6Handler:
         # Extension headers
         elif next_header == 0: # Hop-by-hop options header
             print('Protocol: Hop-by-hop options header')
+            IPv6ExtentionHandler(data, hdr_length + ipv6_hdr_len)
         elif next_header == 43: # Routing header
             print('Protocol: Routing header')
+            IPv6ExtentionHandler(data, hdr_length + ipv6_hdr_len)
         elif next_header == 44: # Fragment header
             print('Protocol: Fragment header')
         elif next_header == 60: # Destination options header
@@ -110,6 +112,41 @@ class IPv6Handler:
             print('Protocol: Encapsulating security payload header')
         else: # undefined
             print('Protocol: undefined')
+
+class IPv6ExtentionHandler:
+    def __init__(self, data, hdr_length):
+        ipe_hdr = data[hdr_length:hdr_length + 2]
+        ipe_hdr_ = struct.unpack('!BB', ipe_hdr)
+        next_header = ipe_hdr_[0]
+        next_header_len = (ipe_hdr_[1] + 1) * 8 
+        print('Next header: {}\nNext header length: {} (bytes)'.format(next_header, next_header_len))
+        if next_header == 58: # ICMPv6
+            print('Protocol: ICMPv6')
+        elif next_header == 6: # TCP
+            print('TCP')
+            TCPHandler(data, next_header_len + hdr_length, next_header_len)
+        elif next_header == 17: # UDP
+            print('UDP')
+            #UDPHandler(data, ipaddress + hdr_length, ipv6_hdr_len)
+        # Extension headers
+        elif next_header == 0: # Hop-by-hop options header
+            print('Protocol: Hop-by-hop options header')
+        elif next_header == 43: # Routing header
+            print('Protocol: Routing header')
+        elif next_header == 44: # Fragment header
+            print('Protocol: Fragment header')
+        elif next_header == 60: # Destination options header
+            print('Protocol: Destination options header')
+        elif next_header == 51: # Authentication header
+            print('Protocol: Authentication header')
+        elif next_header == 50: # Encapsulating security payload header
+            print('Protocol: Encapsulating security payload header')
+        elif next_header == 41: # IPv6
+            print('Protocol: IPv6')
+            IPv6Handler(data, next_header_len + hdr_length)
+        else: # undefined
+            print('Protocol: undefined')
+
 
 class TCPHandler:
     def __init__(self, data, hdr_length, ihl):
