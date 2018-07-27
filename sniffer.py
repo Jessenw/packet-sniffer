@@ -36,6 +36,11 @@ def mac2str(mac_bytes):
     mac_pairs = [i+j for i,j in zip(mac_string[0::2], mac_string[1::2])]
     return ':'.join(mac_pairs)
 
+'''
+Handles the DataLink header. For this assignment, we only care about ethernet
+Ethernet format diagram can be found here:
+http://microchipdeveloper.com/tcpip:tcp-ip-data-link-layer-layer-2
+'''
 class DataLinkLayerHandler:
     def __init__(self, pkt_dict, data, hdr_length):
         type = socket.ntohs(pkt_dict['type'])
@@ -47,9 +52,9 @@ class DataLinkLayerHandler:
 class NetworkLayerHandler:
     def __init__(self, data, hdr_length):
         ip_hdr = data[hdr_length:hdr_length + 20]
-        ip_hdr_ = struct.unpack('!BBHHHBBH4s4s', ip_hdr) # 8 8 16 16 16 8 8 16
+        ip_hdr_ = struct.unpack('!BBHHHBBH4s4s', ip_hdr) # 8,8,16,16,16,8,8,16
         version = ip_hdr_[0]
-        version_ = ip_hdr_[0] >> 4 # we only want the first 4 bits
+        version_ = version >> 4 # we only want the first 4 bits
         ihl = (version & 0xf) * 4
         if version_ == 4:
             print('Ethernet Type: IPv4')
@@ -63,23 +68,28 @@ class NetworkLayerHandler:
             print('Ethernet Type: undefined')
         
         protocol = ip_hdr_[6]
-        # ICMPv4
-        if protocol == 1 and version == 4:
+        if protocol == 1 and version == 4: # ICMPv4
             print('Protocol: ICMPv4')
-        # ICMPv6
-        elif protocol == 1 and version == 6:
+        elif protocol == 1 and version == 6: # ICMPv6
             print('Protocol: ICMPv6')
-        # TCP
-        elif protocol == 6:
-            print('Protocol: TCP')
-        # UDP
-        elif protocol == 17:
+        elif protocol == 6: # TCP
+            TCPHandler(data, ihl + hdr_length)
+        elif protocol == 17: # UDP
             print('Protocol: UDP')
-        # undefined
-        else:
+        else: # undefined
             print('Protocol: undefined')
 
-
+class TCPHandler:
+    def __init__(self, data, hdr_length):
+        tcp_hdr = data[hdr_length:hdr_length + 20]
+        tcp_hdr_ = struct.unpack('!HHLLBBHHH', tcp_hdr) # HHLLBBHHH
+        src_port = tcp_hdr_[0]
+        dest_port = tcp_hdr_[1]
+        print('Src Port: {}\nDst Port: {}'.format(str(src_port), str(dest_port)))
+        tcp_hdr_len = (hdr_length + 20) / 4
+        data_size = len(data) - tcp_hdr_len
+        print('TCP Header Length: {}'.format(tcp_hdr_len))
+        print('Payload: ({})'.format(data_size))
 
 class PacketHeaderBase:
     ''' Base class for packet headers. '''
@@ -100,64 +110,6 @@ class PacketHeaderBase:
             setattr(self, k, v)
 
         DataLinkLayerHandler(pkt_dict, data, self.hdr_length)
-        
-        '''
-        Data Link Layer
-        '''
-        eth_proto = socket.ntohs(pkt_dict['type'])
-        if eth_proto == 8:
-            ''' 
-            Network Layer 
-            '''
-            min_length = 20 # min number of bytes the ip header can be
-            ip_hdr = data[self.hdr_length:min_length + self.hdr_length]
-            ip_hdr_ = struct.unpack('!BBHHHBBH4s4s', ip_hdr) # 8 8 16 16 16 8 8 16
-            # Version
-            version = ip_hdr_[0]
-            version_ = version >> 4 # we only want the first 4 bits
-            ihl = (version & 0xf) * 4
-            if version_ == 4:
-                print('Ethernet Type: IPv4')
-            elif version_ == 6:
-                print('Ethernet Type: IPv6')
-            else:
-                print('Ethernet Type: undefined')
-
-            # Source and Destination IP Address
-            source_addr = socket.inet_ntoa(ip_hdr_[8])
-            dest_addr = socket.inet_ntoa(ip_hdr_[9])
-            print('From: {}\nTo: {}'.format(source_addr, dest_addr))
-
-            protocol = ip_hdr_[6]
-             # ICMP packet
-            if protocol == 1:
-                print('Protocol: ICMP')
-            # TCP packet
-            elif protocol == 6:
-                print('Protocol: TCP')
-                tcp_hdr = data[self.hdr_length + ihl: self.hdr_length + ihl + min_length]
-                tcp_hdr_ = struct.unpack('!HHLLBBHHH', tcp_hdr)
-                tcpl = tcp_hdr_[4] >> 4
-                print('Source Port: {}\nDestination Port: {}'.format(str(tcp_hdr_[0]), str(tcp_hdr_[1])))
-                payload_size = len(data) - (self.hdr_length + ihl + tcpl) * 4 # total length - all headers
-                print(len(data))
-                print('Payload: {} (Bytes)'.format(payload_size))
-            # UDP packet
-            elif protocol == 17:
-                print('Protocol: UDP')
-                '''
-                length = self.hdr_length + ihl * 4
-                udp_hdr = data[length:length + 8]
-                udp_hdr_ = struct.unpack('!HHHH', udp_hdr)
-                src_port = udp_hdr_[0]
-                dest_port = udp_hdr_[1]
-                print('Source Port: {}\nDestination Port: {}'.format(src_port, dest_port))
-                '''
-            # undefined packet
-            else:
-                print('Protocol: undefined')
-
-            print('Length: {}'.format(ihl))
 
 class Ethernet(PacketHeaderBase):
     ''' Ethernet header class. '''
