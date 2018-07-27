@@ -58,7 +58,6 @@ class IPv4Handler:
         ip_hdr_ = struct.unpack('!BBHHHBBH4s4s', ip_hdr) # 8,8,16,16,16,8,8,16
         version = ip_hdr_[0]
         version_ = version >> 4 # we only want the first 4 bits
-        print(version_)
         ihl = (version & 0xf) * 4
         if version_ == 4:
             print('Ethernet Type: IPv4')
@@ -83,12 +82,34 @@ class IPv4Handler:
 class IPv6Handler:
     def __init__(self, data, hdr_length):
         print('Ethernet Type: IPv6')
-        ipv6_hdr_len = 20
-        ip_hdr = data[hdr_length:hdr_length + 40]
+        ipv6_hdr_len = 40
+        ip_hdr = data[hdr_length:hdr_length + ipv6_hdr_len]
         ip_hdr_ = struct.unpack('!LHBB16s16s', ip_hdr)
         src_addr = mac2str(ip_hdr_[4])
         dest_addr = mac2str(ip_hdr_[5])
         print('From: {}\nTo: {}'.format(src_addr, dest_addr))
+        next_header = ip_hdr_[2]
+        if next_header == 58: # ICMPv6
+            print('Protocol: ICMPv6')
+        elif next_header == 6: # TCP
+            TCPHandler(data, ipv6_hdr_len + hdr_length, ipv6_hdr_len)
+        elif next_header == 17: # UDP
+            UDPHandler(data, ipaddress + hdr_length, ipv6_hdr_len)
+        # Extension headers
+        elif next_header == 0: # Hop-by-hop options header
+            print('Protocol: Hop-by-hop options header')
+        elif next_header == 43: # Routing header
+            print('Protocol: Routing header')
+        elif next_header == 44: # Fragment header
+            print('Protocol: Fragment header')
+        elif next_header == 60: # Destination options header
+            print('Protocol: Destination options header')
+        elif next_header == 51: # Authentication header
+            print('Protocol: Authentication header')
+        elif next_header == 50: # Encapsulating security payload header
+            print('Protocol: Encapsulating security payload header')
+        else: # undefined
+            print('Protocol: undefined')
 
 class TCPHandler:
     def __init__(self, data, hdr_length, ihl):
