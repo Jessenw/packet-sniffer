@@ -76,6 +76,7 @@ class NetworkLayerHandler:
             TCPHandler(data, ihl + hdr_length, ihl)
         elif protocol == 17: # UDP
             print('Protocol: UDP')
+            UDPHandler(data, ihl + hdr_length, ihl)
         else: # undefined
             print('Protocol: undefined')
 
@@ -89,6 +90,19 @@ class TCPHandler:
         print('Src Port: {}\nDst Port: {}'.format(str(src_port), str(dest_port)))
         tcp_hdr_size = tcp_hdr_[4] >> 4
         total_hdr_size = 14 + ihl + tcp_hdr_size * 4
+        payload_size = len(data) - total_hdr_size
+        print('Payload: ({})'.format(payload_size))
+        print("Data: \n{}".format(binascii.hexlify(data[total_hdr_size:])))
+
+class UDPHandler:
+    def __init__(self, data, hdr_length, ihl):
+        udp_hdr_size = 8
+        udp_hdr = data[hdr_length:hdr_length + udp_hdr_size]
+        udp_hdr_ = struct.unpack('!HHHH', udp_hdr)
+        src_port = udp_hdr_[0]
+        dest_port = udp_hdr_[1]
+        print('Src Port: {}\nDst Port: {}'.format(str(src_port), str(dest_port)))
+        total_hdr_size = 14 + ihl + udp_hdr_size
         payload_size = len(data) - total_hdr_size
         print('Payload: ({})'.format(payload_size))
         print("Data: \n{}".format(binascii.hexlify(data[total_hdr_size:])))
