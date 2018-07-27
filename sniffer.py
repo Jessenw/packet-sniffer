@@ -44,21 +44,21 @@ http://microchipdeveloper.com/tcpip:tcp-ip-data-link-layer-layer-2
 class DataLinkLayerHandler:
     def __init__(self, pkt_dict, data, hdr_length):
         #type = socket.ntohs(pkt_dict['type'])
-        type = str(pkt_dict['type'])
-        # IPv4 = 0x86DD = 2048
-        # IPv6 = 0x86DD = 34525
-        if type == '2048' or type == '34525':
-            NetworkLayerHandler(data, hdr_length)
-        elif type == '34525':
+        type = pkt_dict['type']
+        if type == 2048: # IPv4 = 0x86DD = 2048
+            IPv4Handler(data, hdr_length)
+        elif type == 34525: # IPv6 = 0x86DD = 34525
+            IPv6Handler(data, hdr_length)
         else:
             print('DataLink Type: undefined. Type = {}'.format(type))
 
-class NetworkLayerHandler:
+class IPv4Handler:
     def __init__(self, data, hdr_length):
         ip_hdr = data[hdr_length:hdr_length + 20]
         ip_hdr_ = struct.unpack('!BBHHHBBH4s4s', ip_hdr) # 8,8,16,16,16,8,8,16
         version = ip_hdr_[0]
         version_ = version >> 4 # we only want the first 4 bits
+        print(version_)
         ihl = (version & 0xf) * 4
         if version_ == 4:
             print('Ethernet Type: IPv4')
@@ -66,16 +66,12 @@ class NetworkLayerHandler:
             source_addr = socket.inet_ntoa(ip_hdr_[8])
             dest_addr = socket.inet_ntoa(ip_hdr_[9])
             print('From: {}\nTo: {}'.format(source_addr, dest_addr))
-        elif version_ == 6:
-            print('Ethernet Type: IPv6')
         else:
             print('Ethernet Type: undefined')
         
         protocol = ip_hdr_[6]
-        if protocol == 1 and version == 4: # ICMPv4
+        if protocol == 1: # ICMPv4
             print('Protocol: ICMPv4')
-        elif protocol == 1 and version == 6: # ICMPv6
-            print('Protocol: ICMPv6')
         elif protocol == 6: # TCP
             TCPHandler(data, ihl + hdr_length, ihl)
         elif protocol == 17: # UDP
@@ -83,6 +79,16 @@ class NetworkLayerHandler:
             UDPHandler(data, ihl + hdr_length, ihl)
         else: # undefined
             print('Protocol: undefined')
+
+class IPv6Handler:
+    def __init__(self, data, hdr_length):
+        print('Ethernet Type: IPv6')
+        ipv6_hdr_len = 20
+        ip_hdr = data[hdr_length:hdr_length + 40]
+        ip_hdr_ = struct.unpack('!LHBB16s16s', ip_hdr)
+        src_addr = mac2str(ip_hdr_[4])
+        dest_addr = mac2str(ip_hdr_[5])
+        print('From: {}\nTo: {}'.format(src_addr, dest_addr))
 
 class TCPHandler:
     def __init__(self, data, hdr_length, ihl):
