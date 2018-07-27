@@ -91,7 +91,7 @@ class TCPHandler:
         total_hdr_size = 14 + ihl + tcp_hdr_size * 4
         payload_size = len(data) - total_hdr_size
         print('Payload: ({})'.format(payload_size))
-        print("Data: {}".format(data[total_hdr_size:]))
+        print("Data: \n{}".format(binascii.hexlify(data[total_hdr_size:])))
 
 class PacketHeaderBase:
     ''' Base class for packet headers. '''
