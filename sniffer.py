@@ -73,20 +73,25 @@ class NetworkLayerHandler:
         elif protocol == 1 and version == 6: # ICMPv6
             print('Protocol: ICMPv6')
         elif protocol == 6: # TCP
-            TCPHandler(data, ihl + hdr_length)
+            TCPHandler(data, ihl + hdr_length, ihl)
         elif protocol == 17: # UDP
             print('Protocol: UDP')
         else: # undefined
             print('Protocol: undefined')
 
 class TCPHandler:
-    def __init__(self, data, hdr_length):
+    def __init__(self, data, hdr_length, ihl):
         print("Protocol: TCP")
         tcp_hdr = data[hdr_length:hdr_length + 20]
         tcp_hdr_ = struct.unpack('!HHLLBBHHH', tcp_hdr) # HHLLBBHHH
         src_port = tcp_hdr_[0]
         dest_port = tcp_hdr_[1]
         print('Src Port: {}\nDst Port: {}'.format(str(src_port), str(dest_port)))
+        tcp_hdr_size = tcp_hdr_[4] >> 4
+        total_hdr_size = 14 + ihl + tcp_hdr_size * 4
+        payload_size = len(data) - total_hdr_size
+        print('Payload: ({})'.format(payload_size))
+        print("Data: {}".format(data[total_hdr_size:]))
 
 class PacketHeaderBase:
     ''' Base class for packet headers. '''
