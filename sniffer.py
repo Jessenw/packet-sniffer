@@ -36,22 +36,11 @@ def mac2str(mac_bytes):
     mac_pairs = [i+j for i,j in zip(mac_string[0::2], mac_string[1::2])]
     return ':'.join(mac_pairs)
 
-def IPv6NextHeaderHandler(next_header):
-
 '''
 Handles the DataLink header. For this assignment, we only care about IPv4 and IPv6.
 Ethernet format diagram can be found here:
 http://microchipdeveloper.com/tcpip:tcp-ip-data-link-layer-layer-2
 '''
-class DataLinkLayerHandler:
-    def __init__(self, pkt_dict, data, hdr_length):
-        protocol = pkt_dict['type']
-        if protocol == 2048: # IPv4 = 0x86DD = 2048
-            IPv4Handler(data, hdr_length)
-        elif protocol == 34525: # IPv6 = 0x86DD = 34525
-            IPv6Handler(data, hdr_length)
-        else: # undefined protocol
-            print('DataLink Type: undefined. Type = {}'.format(type))
 
 class IPv4Handler:
     def __init__(self, data, hdr_length):
@@ -64,6 +53,7 @@ class IPv4Handler:
         version_ = ip_hdr[0]
         version = version_ >> 4 # we only want the first 4 bits
         ihl = (version_ & 0xf) * 4
+        print('ihl: {}'.format(hdr_length))
 
         source_addr = socket.inet_ntoa(ip_hdr[8])
         dest_addr = socket.inet_ntoa(ip_hdr[9])
@@ -93,12 +83,11 @@ class IPv6Handler:
 
         next_header = ip_hdr[2]
         if next_header == 58: # ICMPv6
-            print('Protocol: ICMPv6')
+            IPv6Handler(data, hdr_length + ipv6_hdr_len)
         elif next_header == 6: # TCP
             TCPHandler(data, ipv6_hdr_len + hdr_length, ipv6_hdr_len)
         elif next_header == 17: # UDP
-            UDPHandler(data, ipaddress + hdr_length, ipv6_hdr_len)
-        # Extension headers
+            UDPHandler(data, ipv6_hdr_len + hdr_length, ipv6_hdr_len)
         elif next_header == 0: # Hop-by-hop options header
             print('Protocol: Hop-by-hop options header')
             IPv6ExtentionHandler(data, hdr_length + ipv6_hdr_len)
@@ -195,7 +184,7 @@ class PacketHeaderBase:
         for k, v in pkt_dict.items():
             setattr(self, k, v)
 
-        DataLinkLayerHandler(pkt_dict, data, self.hdr_length)
+        #DataLinkLayerHandler(pkt_dict, data, self.hdr_length)
 
 class Ethernet(PacketHeaderBase):
     ''' Ethernet header class. '''
@@ -205,6 +194,19 @@ class Ethernet(PacketHeaderBase):
 
     def __init__(self, data):
         super().__init__(Ethernet.fmt, Ethernet.fields, data)
+
+        # process the ethernet header
+        protocol = self.type
+        print('Ethernet Header Length: {}'.format(self.hdr_length))
+        print('Destination MAC: {} | Source MAC: {}'.format(mac2str(self.dest), mac2str(self.source)))
+        if protocol == 2048: # IPv4 = 0x86DD = 2048
+            print('Ethernet Type: IPv4')
+            IPv4Handler(data, self.hdr_length)
+        elif protocol == 34525: # IPv6 = 0x86DD = 34525
+            print('Ethernet Type: IPv6')
+            IPv6Handler(data, self.hdr_length)
+        else: # undefined protocol
+            print('DataLink Type: Unknown ({})'.format(type))
 
     def __str__(self):
         return "Ethernet payload {}, ".format( binascii.hexlify(self.payload) )  # what information needs to be printed?
