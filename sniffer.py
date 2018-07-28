@@ -104,7 +104,7 @@ class IPv6ExtentionHandler:
             IPv6Handler(data, next_header_len + hdr_length)
         else: # undefined
             print('Protocol: undefined')
-
+'''
 class TCPHandler:
     def __init__(self, data, hdr_length, ihl):
         print("Protocol: TCP")
@@ -118,7 +118,7 @@ class TCPHandler:
         payload_size = len(data) - total_hdr_size
         print('Payload: ({})'.format(payload_size))
         print("Data: \n{}".format(binascii.hexlify(data[total_hdr_size:])))
-
+'''
 class UDPHandler:
     def __init__(self, data, hdr_length, ihl):
         print('Protocol: UDP')
@@ -150,8 +150,6 @@ class PacketHeaderBase:
         pkt_dict = dict(zip(field_names, self.field_values))
         for k, v in pkt_dict.items():
             setattr(self, k, v)
-
-        #DataLinkLayerHandler(pkt_dict, data, self.hdr_length)
 
 '''
 Handles layer 2 (Data-link) header processing.
@@ -189,6 +187,7 @@ class IPv4Handler(PacketHeaderBase):
         super().__init__(IPv4Handler.fmt, IPv4Handler.fields, data)
 
         print('IPv4 Header Length: {}'.format(self.hdr_length))
+
         version_ = self.version_ihl
         version = version_ >> 4 # we only want the first 4 bits
         ihl = (version_ & 0xf) * 4
@@ -202,10 +201,31 @@ class IPv4Handler(PacketHeaderBase):
             print('Protocol: ICMP')
         elif protocol == 6: # TCP
             print('Protocol: TCP')
+            TCPHandler(data, total_hdr_len)
         elif protocol == 17: # UDP
             print('Protocol: UDP')
         else: # other
             print('Protocol: other')
+
+class TCPHandler(PacketHeaderBase):
+    fmt = '!HHLLBBHHH'
+    fields = ['src_port', 'dest_port', 'sequence', 'ack', 'offset', 'res_flags', 'window', 'checksum', 'urgent_pointer']
+
+    def __init__(self, data, total_hdr_len):
+        data = data[14 + 20:]
+        super().__init__(TCPHandler.fmt, TCPHandler.fields, data)
+
+        print('TCP Header Length: {}'.format(self.hdr_length))
+
+        src_port = str(self.src_port)
+        dest_port = str(self.dest_port)
+        print('Source Port: {} | Destination Port: {}'.format(src_port, dest_port))
+
+        tcp_hdr_size = self.offset >> 4
+        total_hdr_size = total_hdr_len * 4
+        payload_size = len(data) - total_hdr_size
+        print('Payload: ({})'.format(payload_size))
+        print("Data: \n{}".format(binascii.hexlify(data[total_hdr_size:])))
 
 def process_packet(packet_data):
     ''' Function for processing a single packet '''
