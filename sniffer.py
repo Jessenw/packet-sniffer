@@ -36,39 +36,6 @@ def mac2str(mac_bytes):
     mac_pairs = [i+j for i,j in zip(mac_string[0::2], mac_string[1::2])]
     return ':'.join(mac_pairs)
 
-'''
-Handles the DataLink header. For this assignment, we only care about IPv4 and IPv6.
-Ethernet format diagram can be found here:
-http://microchipdeveloper.com/tcpip:tcp-ip-data-link-layer-layer-2
-'''
-
-class IPv4Handler:
-    def __init__(self, data, hdr_length):
-        print('Ethernet Type: IPv4')
-
-        ipv4_len = 20 # in bytes
-        ip_hdr_ = data[hdr_length:hdr_length + ipv4_len]
-        ip_hdr = struct.unpack('!BBHHHBBH4s4s', ip_hdr_)
-
-        version_ = ip_hdr[0]
-        version = version_ >> 4 # we only want the first 4 bits
-        ihl = (version_ & 0xf) * 4
-        print('ihl: {}'.format(hdr_length))
-
-        source_addr = socket.inet_ntoa(ip_hdr[8])
-        dest_addr = socket.inet_ntoa(ip_hdr[9])
-        print('From: {}\nTo: {}'.format(source_addr, dest_addr))
-        
-        protocol = ip_hdr[6]
-        if protocol == 1: # ICMPv4
-            print('Protocol: ICMP')
-        elif protocol == 6: # TCP
-            TCPHandler(data, ihl + hdr_length, ihl)
-        elif protocol == 17: # UDP
-            UDPHandler(data, ihl + hdr_length, ihl)
-        else: # other
-            print('Protocol: other')
-
 class IPv6Handler:
     def __init__(self, data, hdr_length):
         print('Ethernet Type: IPv6')
@@ -186,9 +153,10 @@ class PacketHeaderBase:
 
         #DataLinkLayerHandler(pkt_dict, data, self.hdr_length)
 
+'''
+Handles layer 2 (Data-link) header processing.
+'''
 class Ethernet(PacketHeaderBase):
-    ''' Ethernet header class. '''
-    # _fmt and _fields define the structure of an Ethernet packet
     fmt = '!6s6sH'
     fields = ['dest', 'source', 'type', 'data']
 
@@ -210,6 +178,34 @@ class Ethernet(PacketHeaderBase):
 
     def __str__(self):
         return "Ethernet payload {}, ".format( binascii.hexlify(self.payload) )  # what information needs to be printed?
+
+class IPv4Handler(PacketHeaderBase):
+    fmt = '!BBHHHBBH4s4s'
+    fields = ['version_ihl', 'service_type', 'length', 'id', 'flags', 'ttl', 'protocol', 'checksum', 'src_addr', 'dest_addr']
+    
+    # process IPv4 header
+    def __init__(self, data, total_hdr_len):
+        data = data[total_hdr_len:]
+        super().__init__(IPv4Handler.fmt, IPv4Handler.fields, data)
+
+        print('IPv4 Header Length: {}'.format(self.hdr_length))
+        version_ = self.version_ihl
+        version = version_ >> 4 # we only want the first 4 bits
+        ihl = (version_ & 0xf) * 4
+
+        source_addr = socket.inet_ntoa(self.src_addr)
+        dest_addr = socket.inet_ntoa(self.dest_addr)
+        print('Source Address: {} | Destination Address: {}'.format(source_addr, dest_addr))
+        
+        protocol = self.protocol
+        if protocol == 1: # ICMPv4
+            print('Protocol: ICMP')
+        elif protocol == 6: # TCP
+            print('Protocol: TCP')
+        elif protocol == 17: # UDP
+            print('Protocol: UDP')
+        else: # other
+            print('Protocol: other')
 
 def process_packet(packet_data):
     ''' Function for processing a single packet '''
