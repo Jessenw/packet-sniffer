@@ -39,9 +39,20 @@ Minimum Header sizes (in bytes)
 ETHERNET_HDR_SIZE = 14
 IPV4_HDR_SIZE = 20
 IPV6_HDR_SIZE = 40
+IPV6_EXT_HDR_SIZE = 2
 TCP_HDR_SIZE = 20
 ICMP_HDR_SIZE = 4
 UDP_HDR_SIZE = 8
+
+# types found here: https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol_for_IPv6
+# I got a bit carried away :')
+icmpv6_types = {'1':'Destination Unreachable', '2':'Packet Too Big', '3':'Time exceeded', '4':'Parameter Problem', '128':'Echo Request', 
+                '129':'Echo Reply','130':'MLD', '131':'Multicast Listener Report', '132':'Multicast Listener Done', '133':'Router Solicitation'
+                '134':'Router Advertisement', '135':'Neighbor Solicitation', '136':'Neigbor Advertisement', '137':'Redirect Message'
+                '138':'Router Renumbering', '139':'ICMP Node Information Query', '140':'ICMP Node Information Response', '141':'Inverse Neigbor Discovery Solicitation Message',
+                '142':'Inverse Neighbor Discovery Advertisement Message', '143':'Multicast Listener Discovery', '144':'Home Agent Address Discovery Request Message',
+
+                }
 
 def mac2str(mac_bytes):
     mac_string = binascii.hexlify(mac_bytes).decode('ascii')
@@ -120,6 +131,7 @@ class IPv6Handler:
         # ICMPv6
         if next_header == 58:
             print('Protocol: ICMPv6')
+            ICMPv6Handler(data, IPV6_HDR_SIZE + hdr_length)
         # TCP
         elif next_header == 6:
             TCPHandler(data, IPV6_HDR_SIZE + hdr_length, IPV6_HDR_SIZE)
@@ -162,50 +174,52 @@ class IPv6ExtentionHandler:
         ipe_hdr_ = struct.unpack('!BB', ipe_hdr)
 
         next_header = ipe_hdr_[0]
-        next_header_len = (ipe_hdr_[1] + 1) * 8 
+        next_header_len = (ipe_hdr_[1] + 1) * 8
+        total_hdr_size = hdr_length + next_header_len
         print('Next header: {}\nNext header length: {} (bytes)'.format(next_header, next_header_len))
         # ICMPv6
         if next_header == 58:
             print('Protocol: ICMPv6')
+            ICMPv6Handler(data, total_hdr_size)
         # TCP
         elif next_header == 6:
-            TCPHandler(data, IPV6_HDR_SIZE + hdr_length, IPV6_HDR_SIZE)
+            TCPHandler(data, total_hdr_size, IPV6_HDR_SIZE)
         # UDP
         elif next_header == 17:
-            UDPHandler(data, IPV6_HDR_SIZE + hdr_length, IPV6_HDR_SIZE)
+            UDPHandler(data, total_hdr_size, IPV6_HDR_SIZE)
         # Hop-by-hop options header
         elif next_header == 0:
             print('Protocol: Hop-by-hop options header')
-            IPv6ExtentionHandler(data, hdr_length + IPV6_HDR_SIZE)
+            IPv6ExtentionHandler(data, total_hdr_size)
         # Routing header
         elif next_header == 43:
             print('Protocol: Routing header')
-            IPv6ExtentionHandler(data, hdr_length + IPV6_HDR_SIZE)
+            IPv6ExtentionHandler(data, total_hdr_size)
         # Fragment header
         elif next_header == 44:
             print('Protocol: Fragment header')
-            IPv6ExtentionHandler(data, hdr_length + IPV6_HDR_SIZE)
+            IPv6ExtentionHandler(data, total_hdr_size)
         # Destination options header
         elif next_header == 60:
             print('Protocol: Destination options header')
-            IPv6ExtentionHandler(data, hdr_length + IPV6_HDR_SIZE)
+            IPv6ExtentionHandler(data, total_hdr_size)
         # Authentication header
         elif next_header == 51:
             print('Protocol: Authentication header')
-            IPv6ExtentionHandler(data, hdr_length + IPV6_HDR_SIZE)
+            IPv6ExtentionHandler(data, total_hdr_size)
         # Encapsulating security payload header
         elif next_header == 50:
             print('Protocol: Encapsulating security payload header')
-            IPv6ExtentionHandler(data, hdr_length + IPV6_HDR_SIZE)
+            IPv6ExtentionHandler(data, total_hdr_size)
         # IPv6
         elif next_header == 41:
             print('Protocol: IPv6')
-            IPv6Handler(data, next_header_len + hdr_length)
+            IPv6Handler(data, total_hdr_size)
         # unknown
         else:
             print('Protocol: Unknown')
             print('Data:')
-            hexdump.hexdump(hdr_length + IPV6_HDR_SIZE)
+            hexdump.hexdump(total_hdr_size)
 
 class ICMPHandler:
     def __init__(self, data, hdr_length, ihl):
@@ -225,6 +239,16 @@ class ICMPHandler:
         '''
         IPv4Handler(data, hdr_length + ICMP_HDR_SIZE + 4)
 
+class ICMPv6Handler:
+    def __init__(self, data, hdr_length):
+        icmpv6_hdr = data[hdr_length : hdr_length + ICMP_HDR_SIZE]
+        icmpv6_hdr_ = struct.unpack('!BBH', icmpv6_hdr)
+
+        type = str(icmpv6_hdr_[0])
+        type_ = icmpv6_types[str(type)]
+        code = str(icmpv6_hdr_[1])
+        checksum = str(icmpv6_hdr_[2])
+        print('Type: {} | Code: {} | Checksum: {}'.format(type_, code, checksum))
 
 class TCPHandler:
     def __init__(self, data, hdr_length, ihl):
@@ -246,7 +270,6 @@ class TCPHandler:
 
 class UDPHandler:
     def __init__(self, data, hdr_length, ihl):
-        print('Protocol: UDP')
         
         udp_hdr = data[hdr_length : hdr_length + UDP_HDR_SIZE]
         udp_hdr_ = struct.unpack('!HHHH', udp_hdr)
