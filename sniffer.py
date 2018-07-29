@@ -8,6 +8,7 @@ Requires the pcapy library.
 To install: python3 -m pip install pcapy -t ./pcapy/
 To run:     python3 sniffer.py packets_file.pcap
 Or:         tcpdump -w - | python3 ./sniffer.py -
+
 Resources used:
 IP Version numbers: https://www.iana.org/assignments/version-numbers/version-numbers.xhtml
 Python Socket Docs: https://docs.python.org/3/library/socket.html
@@ -17,7 +18,8 @@ Python Struct Docs: https://docs.python.org/3/library/struct.html
 NWEN302 Lecture slides
 '''
 
-from pcapy import pcapy  
+from pcapy import pcapy
+from hexdump import hexdump
 
 import binascii
 import struct
@@ -32,10 +34,8 @@ def mac2str(mac_bytes):
 
 '''
 Handles the DataLink header. For this assignment, we only care about IPv4 and IPv6.
-Ethernet format diagram can be found here:
-http://microchipdeveloper.com/tcpip:tcp-ip-data-link-layer-layer-2
 '''
-class DataLinkLayerHandler:
+class EthernetHandler:
     def __init__(self, pkt_dict, data, hdr_length):
         print('Ethernet Header Length: {}'.format(hdr_length))
 
@@ -52,6 +52,7 @@ class DataLinkLayerHandler:
             IPv6Handler(data, hdr_length)
         else: # unknown protocol
             print('DataLink Type: Unknown. Type = {}'.format(type))
+            hexdump.hexdump(data[total_hdr_size:])
 
 class IPv4Handler:
     def __init__(self, data, hdr_length):
@@ -173,8 +174,8 @@ class TCPHandler:
         total_hdr_size = 14 + ihl + tcp_hdr_size * 4
         payload_size = len(data) - total_hdr_size
         print('Payload Size: ({})'.format(payload_size))
-
-        print("Data: \n{}".format(binascii.hexlify(data[total_hdr_size:])))
+        print("Data:")
+        hexdump.hexdump(data[total_hdr_size:])
 
 class UDPHandler:
     def __init__(self, data, hdr_length, ihl):
@@ -189,7 +190,8 @@ class UDPHandler:
         total_hdr_size = 14 + ihl + udp_hdr_size
         payload_size = len(data) - total_hdr_size
         print('Payload Size: ({})'.format(payload_size))
-        print("Data: \n{}".format(binascii.hexlify(data[total_hdr_size:])))
+        print("Data:")
+        hexdump.hexdump(data[total_hdr_size:])
 
 class PacketHeaderBase:
     ''' Base class for packet headers. '''
@@ -209,7 +211,7 @@ class PacketHeaderBase:
         for k, v in pkt_dict.items():
             setattr(self, k, v)
 
-        DataLinkLayerHandler(pkt_dict, data, self.hdr_length)
+        EthernetHandler(pkt_dict, data, self.hdr_length)
 
 class Ethernet(PacketHeaderBase):
     ''' Ethernet header class. '''
