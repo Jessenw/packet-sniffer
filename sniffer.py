@@ -121,7 +121,7 @@ class IPv6Handler:
             TCPHandler(data, IPV6_HDR_SIZE + hdr_length, IPV6_HDR_SIZE)
         # UDP
         elif next_header == 17:
-            UDPHandler(data, ipaddress + hdr_length, IPV6_HDR_SIZE)
+            UDPHandler(data, IPV6_HDR_SIZE + hdr_length, IPV6_HDR_SIZE)
         # Hop-by-hop options header
         elif next_header == 0:
             print('Protocol: Hop-by-hop options header')
@@ -133,15 +133,19 @@ class IPv6Handler:
         # Fragment header
         elif next_header == 44:
             print('Protocol: Fragment header')
+            IPv6ExtentionHandler(data, hdr_length + IPV6_HDR_SIZE)
         # Destination options header
         elif next_header == 60:
             print('Protocol: Destination options header')
+            IPv6ExtentionHandler(data, hdr_length + IPV6_HDR_SIZE)
         # Authentication header
         elif next_header == 51:
             print('Protocol: Authentication header')
+            IPv6ExtentionHandler(data, hdr_length + IPV6_HDR_SIZE)
         # Encapsulating security payload header
         elif next_header == 50:
             print('Protocol: Encapsulating security payload header')
+            IPv6ExtentionHandler(data, hdr_length + IPV6_HDR_SIZE)
         # unknown
         else:
             print('Protocol: unknown')
@@ -163,16 +167,22 @@ class IPv6ExtentionHandler:
         # Extension headers
         elif next_header == 0: # Hop-by-hop options header
             print('Protocol: Hop-by-hop options header')
+            IPv6ExtentionHandler(data, next_header_len + hdr_length)
         elif next_header == 43: # Routing header
             print('Protocol: Routing header')
+            IPv6ExtentionHandler(data, next_header_len + hdr_length)
         elif next_header == 44: # Fragment header
             print('Protocol: Fragment header')
+            IPv6ExtentionHandler(data, next_header_len + hdr_length)
         elif next_header == 60: # Destination options header
             print('Protocol: Destination options header')
+            IPv6ExtentionHandler(data, next_header_len + hdr_length)
         elif next_header == 51: # Authentication header
             print('Protocol: Authentication header')
+            IPv6ExtentionHandler(data, next_header_len + hdr_length)
         elif next_header == 50: # Encapsulating security payload header
             print('Protocol: Encapsulating security payload header')
+            
         elif next_header == 41: # IPv6
             print('Protocol: IPv6')
             IPv6Handler(data, next_header_len + hdr_length)
@@ -190,12 +200,13 @@ class ICMPHandler:
         code = str(icmp_hdr_[1])
         checksum = str(icmp_hdr_[2])
         print('Type: {} | Code: {} | Checksum: {}'.format(type, code, checksum))
-        
+
         '''
         Not entirely sure why the + 4 is necessary here but i noticed that my
         destination address was the source address on wireshark
         '''
         IPv4Handler(data, hdr_length + ICMP_HDR_SIZE + 4)
+
 
 class TCPHandler:
     def __init__(self, data, hdr_length, ihl):
