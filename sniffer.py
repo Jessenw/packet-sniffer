@@ -37,19 +37,25 @@ http://microchipdeveloper.com/tcpip:tcp-ip-data-link-layer-layer-2
 '''
 class DataLinkLayerHandler:
     def __init__(self, pkt_dict, data, hdr_length):
+        print('Ethernet Header Length: {}'.format(hdr_length))
+
+        src_mac_addr = mac2str(pkt_dict['source'])
+        dest_mac_addr = mac2str(pkt_dict['dest'])
+        print('Source MAC: {} | Destination MAC: {}'.format(src_mac_addr, dest_mac_addr))
+
         protocol = pkt_dict['type']
         if protocol == 2048: # IPv4 = 0x86DD = 2048
+            print('Ethernet Protocol: IPv4')
             IPv4Handler(data, hdr_length)
         elif protocol == 34525: # IPv6 = 0x86DD = 34525
+            print('Ethernet Protocol: IPv6')
             IPv6Handler(data, hdr_length)
-        else: # undefined protocol
-            print('DataLink Type: undefined. Type = {}'.format(type))
+        else: # unknown protocol
+            print('DataLink Type: Unknown. Type = {}'.format(type))
 
 class IPv4Handler:
     def __init__(self, data, hdr_length):
-        print('Ethernet Type: IPv4')
-
-        ipv4_len = 20 # in bytes
+        ipv4_len = 20
         ip_hdr_ = data[hdr_length:hdr_length + ipv4_len]
         ip_hdr = struct.unpack('!BBHHHBBH4s4s', ip_hdr_)
 
@@ -57,31 +63,32 @@ class IPv4Handler:
         version = version_ >> 4 # we only want the first 4 bits
         ihl = (version_ & 0xf) * 4
 
-        source_addr = socket.inet_ntoa(ip_hdr[8])
+        src_addr = socket.inet_ntoa(ip_hdr[8])
         dest_addr = socket.inet_ntoa(ip_hdr[9])
-        print('From: {}\nTo: {}'.format(source_addr, dest_addr))
+        print('Source Address: {} | Destination Address: {}'.format(src_addr, dest_addr))
         
         protocol = ip_hdr[6]
         if protocol == 1: # ICMPv4
             print('Protocol: ICMP')
+            ICMPHandler(data, ihl + hdr_length, ihl)
         elif protocol == 6: # TCP
+            print('Protocol: TCP')
             TCPHandler(data, ihl + hdr_length, ihl)
         elif protocol == 17: # UDP
+            print('Protocol: UDP')
             UDPHandler(data, ihl + hdr_length, ihl)
         else: # other
-            print('Protocol: other')
+            print('Protocol: Unknown')
 
 class IPv6Handler:
     def __init__(self, data, hdr_length):
-        print('Ethernet Type: IPv6')
-
         ipv6_hdr_len = 40
         ip_hdr_ = data[hdr_length:hdr_length + ipv6_hdr_len]
         ip_hdr = struct.unpack('!LHBB16s16s', ip_hdr_)
 
         src_addr = mac2str(ip_hdr[4])
         dest_addr = mac2str(ip_hdr[5])
-        print('From: {}\nTo: {}'.format(src_addr, dest_addr))
+        print('Source Address: {} | Destination Address: {}'.format(src_addr, dest_addr))
 
         next_header = ip_hdr[2]
         if next_header == 58: # ICMPv6
@@ -141,32 +148,47 @@ class IPv6ExtentionHandler:
         else: # undefined
             print('Protocol: undefined')
 
+class ICMPHandler:
+    def __init__(self, data, hdr_length, ihl):
+        i = ihl * 4 + 14
+        icmp_hdr = data[i:i + 4]
+        print(icmp_hdr)
+        icmp_hdr_ = struct.unpack('!BBH', icmp_hdr)
+        
+        type = str(icmp_hdr_[0])
+        code = str(icmp_hdr_[1])
+        checksum = str(icmp_hdr_[2])
+        print('Type: {} | Code: {} | Checksum: {}|'.format(type, code, checksum))
+
 class TCPHandler:
     def __init__(self, data, hdr_length, ihl):
-        print("Protocol: TCP")
         tcp_hdr = data[hdr_length:hdr_length + 20]
-        tcp_hdr_ = struct.unpack('!HHLLBBHHH', tcp_hdr) # HHLLBBHHH
-        src_port = tcp_hdr_[0]
-        dest_port = tcp_hdr_[1]
-        print('Src Port: {}\nDst Port: {}'.format(str(src_port), str(dest_port)))
+        tcp_hdr_ = struct.unpack('!HHLLBBHHH', tcp_hdr)
+
+        src_port = str(tcp_hdr_[0])
+        dest_port = str(tcp_hdr_[1])
+        print('Source Port: {} | Destination Port: {}'.format(src_port, dest_port))
+
         tcp_hdr_size = tcp_hdr_[4] >> 4
         total_hdr_size = 14 + ihl + tcp_hdr_size * 4
         payload_size = len(data) - total_hdr_size
-        print('Payload: ({})'.format(payload_size))
+        print('Payload Size: ({})'.format(payload_size))
+
         print("Data: \n{}".format(binascii.hexlify(data[total_hdr_size:])))
 
 class UDPHandler:
     def __init__(self, data, hdr_length, ihl):
-        print('Protocol: UDP')
         udp_hdr_size = 8
         udp_hdr = data[hdr_length:hdr_length + udp_hdr_size]
         udp_hdr_ = struct.unpack('!HHHH', udp_hdr)
-        src_port = udp_hdr_[0]
-        dest_port = udp_hdr_[1]
-        print('Src Port: {}\nDst Port: {}'.format(str(src_port), str(dest_port)))
+
+        src_port = str(udp_hdr_[0])
+        dest_port = str(udp_hdr_[1])
+        print('Source Port: {} | Destination Port: {}'.format(src_port, dest_port))
+
         total_hdr_size = 14 + ihl + udp_hdr_size
         payload_size = len(data) - total_hdr_size
-        print('Payload: ({})'.format(payload_size))
+        print('Payload Size: ({})'.format(payload_size))
         print("Data: \n{}".format(binascii.hexlify(data[total_hdr_size:])))
 
 class PacketHeaderBase:
