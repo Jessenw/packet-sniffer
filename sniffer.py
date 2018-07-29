@@ -4,8 +4,9 @@
 sniffer.py -- Python packet sniffer
 By Jordan Ansell (jordan.ansell@ecs.vuw.ac.nz) July 2017
 Use as-is, modification, and/or inclusion in derivative works is permitted only if the original author is credited.
-Requires the pcapy library.
+Requires the pcapy and hexdump library.
 To install: python3 -m pip install pcapy -t ./pcapy/
+            python3 -m pip install hexdump -t ./hexdump/
 To run:     python3 sniffer.py packets_file.pcap
 Or:         tcpdump -w - | python3 ./sniffer.py -
 
@@ -65,7 +66,7 @@ class EthernetHandler:
             IPv6Handler(data, hdr_length)
         else: # unknown protocol
             print('DataLink Type: Unknown. Type = {}'.format(type))
-            hexdump.hexdump(data[total_hdr_size:])
+            hexdump.hexdump(data[hdr_length:])
 
 class IPv4Handler:
     def __init__(self, data, hdr_length):
@@ -152,6 +153,8 @@ class IPv6Handler:
         # unknown
         else:
             print('Protocol: unknown')
+            print('Data:')
+            hexdump.hexdump(hdr_length + IPV6_HDR_SIZE)
 
 class IPv6ExtentionHandler:
     def __init__(self, data, hdr_length):
@@ -200,7 +203,9 @@ class IPv6ExtentionHandler:
             IPv6Handler(data, next_header_len + hdr_length)
         # unknown
         else:
-            print('Protocol: unknown')
+            print('Protocol: Unknown')
+            print('Data:')
+            hexdump.hexdump(hdr_length + IPV6_HDR_SIZE)
 
 class ICMPHandler:
     def __init__(self, data, hdr_length, ihl):
