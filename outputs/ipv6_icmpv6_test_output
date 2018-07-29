@@ -1,0 +1,119 @@
+Opening file: 'tests/ipv6_icmpv6_test.pcap'
+
+Packet #: 1
+Source MAC: d8:9e:f3:18:95:92 | Destination MAC: 33:33:00:00:00:16
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:7c:3f:c5:51:96:ae:71:0c | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:16
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Discovery | Code: 0 | Checksum: 65522
+
+Packet #: 2
+Source MAC: d8:9e:f3:18:91:d1 | Destination MAC: 33:33:00:00:00:16
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:53:6c:13:d5:c2:13:b8:2b | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:16
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Discovery | Code: 0 | Checksum: 37837
+
+Packet #: 3
+Source MAC: d8:9e:f3:18:c6:20 | Destination MAC: 33:33:00:00:00:16
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:40:c5:61:2a:c8:17:88:d6 | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:16
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Discovery | Code: 0 | Checksum: 55880
+
+Packet #: 4
+Source MAC: d8:9e:f3:18:c7:20 | Destination MAC: 33:33:00:00:00:16
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:e5:fa:ee:65:22:91:3b:f6 | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:16
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Discovery | Code: 0 | Checksum: 28768
+
+Packet #: 5
+Source MAC: d8:9e:f3:18:c5:41 | Destination MAC: 33:33:00:00:00:16
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:9e:7c:78:d3:0d:05:85:ac | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:16
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Discovery | Code: 0 | Checksum: 36475
+
+Packet #: 6
+Source MAC: 18:66:da:33:a6:ee | Destination MAC: 33:33:00:00:00:16
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:ee:5b:95:7d:8d:80:48:a8 | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:16
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Discovery | Code: 0 | Checksum: 12752
+
+Packet #: 7
+Source MAC: d8:9e:f3:18:c6:da | Destination MAC: 33:33:00:00:00:16
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:da:42:85:f1:27:c1:68:70 | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:16
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Discovery | Code: 0 | Checksum: 44759
+
+Packet #: 8
+Source MAC: 90:b1:1c:54:77:90 | Destination MAC: 33:33:ff:54:77:90
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:92:b1:1c:ff:fe:54:77:90 | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:01:ff:54:77:90
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Report | Code: 0 | Checksum: 27843
+
+Packet #: 9
+Source MAC: d8:9e:f3:18:93:e3 | Destination MAC: 33:33:00:00:00:16
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:c0:79:c8:c7:c5:13:75:7c | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:16
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Discovery | Code: 0 | Checksum: 51883
+
+Packet #: 10
+Source MAC: 18:66:da:33:a9:09 | Destination MAC: 33:33:00:00:00:16
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:75:a1:29:9b:f6:26:99:f3 | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:16
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Discovery | Code: 0 | Checksum: 58259
+
+Packet #: 11
+Source MAC: 18:66:da:33:a9:cf | Destination MAC: 33:33:00:00:00:16
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:cb:11:b8:de:5b:a7:78:fb | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:16
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Discovery | Code: 0 | Checksum: 22641
+
+Packet #: 12
+Source MAC: 90:b1:1c:54:77:90 | Destination MAC: 33:33:3f:6c:6b:2b
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:92:b1:1c:ff:fe:54:77:90 | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:02:3f:6c:6b:2b
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Report | Code: 0 | Checksum: 1373
+
+Packet #: 13
+Source MAC: 18:66:da:33:a1:56 | Destination MAC: 33:33:00:00:00:16
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:dd:cc:cd:93:5f:12:98:ff | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:16
+Protocol: Hop-by-hop options header
+Next header length: 58 (bytes)
+Protocol: ICMPv6
+Type: Multicast Listener Discovery | Code: 0 | Checksum: 22623
+Complete. 13 packets processed.

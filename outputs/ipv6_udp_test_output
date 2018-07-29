@@ -1,0 +1,144 @@
+Opening file: 'tests/ipv6_udp.pcap'
+
+Packet #: 1
+Source MAC: d8:9e:f3:18:c6:ff | Destination MAC: 60:73:5c:5c:16:7f
+Ethernet Protocol: IPv6
+Source Address: 24:04:20:00:20:00:00:04:81:68:a6:c1:ff:f4:f2:f8 | Destination Address: 26:20:00:00:0c:cc:00:00:00:00:00:00:00:00:00:02
+Source Port: 33656 | Destination Port: 53
+Payload Size: (39)
+Data:
+00000000: B8 49 01 20 00 01 00 00  00 00 00 01 06 67 6F 6F  .I. .........goo
+00000010: 67 6C 65 03 63 6F 6D 00  00 01 00 01 00 00 29 10  gle.com.......).
+00000020: 00 00 00 00 00 00 00                              .......
+
+Packet #: 2
+Source MAC: 60:73:5c:5c:16:7f | Destination MAC: d8:9e:f3:18:c6:ff
+Ethernet Protocol: IPv6
+Source Address: 26:20:00:00:0c:cc:00:00:00:00:00:00:00:00:00:02 | Destination Address: 24:04:20:00:20:00:00:04:81:68:a6:c1:ff:f4:f2:f8
+Source Port: 53 | Destination Port: 33656
+Payload Size: (55)
+Data:
+00000000: B8 49 81 80 00 01 00 01  00 00 00 01 06 67 6F 6F  .I...........goo
+00000010: 67 6C 65 03 63 6F 6D 00  00 01 00 01 C0 0C 00 01  gle.com.........
+00000020: 00 01 00 00 00 4B 00 04  AC D9 19 AE 00 00 29 10  .....K........).
+00000030: 00 00 00 00 00 00 00                              .......
+
+Packet #: 3
+Source MAC: 60:73:5c:5c:16:7f | Destination MAC: 33:33:00:00:00:0d
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:62:73:5c:ff:fe:5c:16:7f | Destination Address: ff:02:00:00:00:00:00:00:00:00:00:00:00:00:00:0d
+Protocol: unknown
+Data:
+00000000: 20 00 EC 91 00 01 00 02  00 69 00 02 00 04 00 64   ........i.....d
+00000010: 01 90 00 13 00 04 00 00  00 01 00 14 00 04 41 76  ..............Av
+00000020: 10 7A 00 16 00 00 00 18  00 12 02 00 24 04 20 00  .z..........$. .
+00000030: 20 00 00 04 00 00 00 00  00 00 01 01 FD E9 00 12   ...............
+00000040: 02 00 24 04 20 00 20 00  00 04 00 00 00 00 00 00  ..$. . .........
+00000050: 01 01                                             ..
+
+Packet #: 4
+Source MAC: d8:9e:f3:18:c6:ff | Destination MAC: 60:73:5c:5c:16:7f
+Ethernet Protocol: IPv6
+Source Address: 24:04:20:00:20:00:00:04:81:68:a6:c1:ff:f4:f2:f8 | Destination Address: 26:20:00:00:0c:cc:00:00:00:00:00:00:00:00:00:02
+Source Port: 39257 | Destination Port: 53
+Payload Size: (39)
+Data:
+00000000: 02 F7 01 20 00 01 00 00  00 00 00 01 06 67 6F 6F  ... .........goo
+00000010: 67 6C 65 03 63 6F 6D 00  00 01 00 01 00 00 29 10  gle.com.......).
+00000020: 00 00 00 00 00 00 00                              .......
+
+Packet #: 5
+Source MAC: 60:73:5c:5c:16:7f | Destination MAC: d8:9e:f3:18:c6:ff
+Ethernet Protocol: IPv6
+Source Address: 26:20:00:00:0c:cc:00:00:00:00:00:00:00:00:00:02 | Destination Address: 24:04:20:00:20:00:00:04:81:68:a6:c1:ff:f4:f2:f8
+Source Port: 53 | Destination Port: 39257
+Payload Size: (55)
+Data:
+00000000: 02 F7 81 80 00 01 00 01  00 00 00 01 06 67 6F 6F  .............goo
+00000010: 67 6C 65 03 63 6F 6D 00  00 01 00 01 C0 0C 00 01  gle.com.........
+00000020: 00 01 00 00 00 4C 00 04  AC D9 19 AE 00 00 29 10  .....L........).
+00000030: 00 00 00 00 00 00 00                              .......
+
+Packet #: 6
+Source MAC: d8:9e:f3:18:c6:ff | Destination MAC: 60:73:5c:5c:16:7f
+Ethernet Protocol: IPv6
+Source Address: 24:04:20:00:20:00:00:04:81:68:a6:c1:ff:f4:f2:f8 | Destination Address: 26:20:00:00:0c:cc:00:00:00:00:00:00:00:00:00:02
+Source Port: 34034 | Destination Port: 53
+Payload Size: (39)
+Data:
+00000000: 78 B0 01 20 00 01 00 00  00 00 00 01 06 67 6F 6F  x.. .........goo
+00000010: 67 6C 65 03 63 6F 6D 00  00 01 00 01 00 00 29 10  gle.com.......).
+00000020: 00 00 00 00 00 00 00                              .......
+
+Packet #: 7
+Source MAC: 60:73:5c:5c:16:7f | Destination MAC: d8:9e:f3:18:c6:ff
+Ethernet Protocol: IPv6
+Source Address: 26:20:00:00:0c:cc:00:00:00:00:00:00:00:00:00:02 | Destination Address: 24:04:20:00:20:00:00:04:81:68:a6:c1:ff:f4:f2:f8
+Source Port: 53 | Destination Port: 34034
+Payload Size: (55)
+Data:
+00000000: 78 B0 81 80 00 01 00 01  00 00 00 01 06 67 6F 6F  x............goo
+00000010: 67 6C 65 03 63 6F 6D 00  00 01 00 01 C0 0C 00 01  gle.com.........
+00000020: 00 01 00 00 00 4A 00 04  AC D9 19 AE 00 00 29 10  .....J........).
+00000030: 00 00 00 00 00 00 00                              .......
+
+Packet #: 8
+Source MAC: d8:9e:f3:18:c6:ff | Destination MAC: 60:73:5c:5c:16:7f
+Ethernet Protocol: IPv6
+Source Address: 24:04:20:00:20:00:00:04:81:68:a6:c1:ff:f4:f2:f8 | Destination Address: 26:20:00:00:0c:cc:00:00:00:00:00:00:00:00:00:02
+Source Port: 55763 | Destination Port: 53
+Payload Size: (39)
+Data:
+00000000: 0F FC 01 20 00 01 00 00  00 00 00 01 06 67 6F 6F  ... .........goo
+00000010: 67 6C 65 03 63 6F 6D 00  00 01 00 01 00 00 29 10  gle.com.......).
+00000020: 00 00 00 00 00 00 00                              .......
+
+Packet #: 9
+Source MAC: 60:73:5c:5c:16:7f | Destination MAC: d8:9e:f3:18:c6:ff
+Ethernet Protocol: IPv6
+Source Address: 26:20:00:00:0c:cc:00:00:00:00:00:00:00:00:00:02 | Destination Address: 24:04:20:00:20:00:00:04:81:68:a6:c1:ff:f4:f2:f8
+Source Port: 53 | Destination Port: 55763
+Payload Size: (55)
+Data:
+00000000: 0F FC 81 80 00 01 00 01  00 00 00 01 06 67 6F 6F  .............goo
+00000010: 67 6C 65 03 63 6F 6D 00  00 01 00 01 C0 0C 00 01  gle.com.........
+00000020: 00 01 00 00 00 45 00 04  AC D9 19 AE 00 00 29 10  .....E........).
+00000030: 00 00 00 00 00 00 00                              .......
+
+Packet #: 10
+Source MAC: d8:9e:f3:18:c6:ff | Destination MAC: 60:73:5c:5c:16:7f
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:ed:21:26:ab:9d:bd:0d:ab | Destination Address: fe:80:00:00:00:00:00:00:62:73:5c:ff:fe:5c:16:7f
+Protocol: ICMPv6
+Type: Neighbor Solicitation | Code: 0 | Checksum: 33174
+
+Packet #: 11
+Source MAC: 60:73:5c:5c:16:7f | Destination MAC: d8:9e:f3:18:c6:ff
+Ethernet Protocol: IPv6
+Source Address: fe:80:00:00:00:00:00:00:62:73:5c:ff:fe:5c:16:7f | Destination Address: fe:80:00:00:00:00:00:00:ed:21:26:ab:9d:bd:0d:ab
+Protocol: ICMPv6
+Type: Neigbor Advertisement | Code: 0 | Checksum: 21590
+
+Packet #: 12
+Source MAC: d8:9e:f3:18:c6:ff | Destination MAC: 60:73:5c:5c:16:7f
+Ethernet Protocol: IPv6
+Source Address: 24:04:20:00:20:00:00:04:81:68:a6:c1:ff:f4:f2:f8 | Destination Address: 26:20:00:00:0c:cc:00:00:00:00:00:00:00:00:00:02
+Source Port: 35843 | Destination Port: 53
+Payload Size: (39)
+Data:
+00000000: 86 6B 01 20 00 01 00 00  00 00 00 01 06 67 6F 6F  .k. .........goo
+00000010: 67 6C 65 03 63 6F 6D 00  00 01 00 01 00 00 29 10  gle.com.......).
+00000020: 00 00 00 00 00 00 00                              .......
+
+Packet #: 13
+Source MAC: 60:73:5c:5c:16:7f | Destination MAC: d8:9e:f3:18:c6:ff
+Ethernet Protocol: IPv6
+Source Address: 26:20:00:00:0c:cc:00:00:00:00:00:00:00:00:00:02 | Destination Address: 24:04:20:00:20:00:00:04:81:68:a6:c1:ff:f4:f2:f8
+Source Port: 53 | Destination Port: 35843
+Payload Size: (55)
+Data:
+00000000: 86 6B 81 80 00 01 00 01  00 00 00 01 06 67 6F 6F  .k...........goo
+00000010: 67 6C 65 03 63 6F 6D 00  00 01 00 01 C0 0C 00 01  gle.com.........
+00000020: 00 01 00 00 00 39 00 04  AC D9 19 AE 00 00 29 10  .....9........).
+00000030: 00 00 00 00 00 00 00                              .......
+Complete. 13 packets processed.

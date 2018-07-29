@@ -59,9 +59,6 @@ def mac2str(mac_bytes):
     mac_pairs = [i+j for i,j in zip(mac_string[0::2], mac_string[1::2])]
     return ':'.join(mac_pairs)
 
-'''
-Handles the DataLink header. For this assignment, we only care about IPv4 and IPv6.
-'''
 class EthernetHandler:
     def __init__(self, pkt_dict, data, hdr_length):
         src_mac_addr = mac2str(pkt_dict['source'])
@@ -87,7 +84,6 @@ class IPv4Handler:
         version_ = ip_hdr[0]
         version = version_ >> 4 # bit shift to get the first 4 bits only
         ihl = (version_ & 0xf) * 4 # set first 4 bits to 0 to get last 4 bits only
-        # print('Internet Header Length (IHL): {}'.format(ihl))
 
         # The idea of using the socket lib came from this example code
         # https://www.binarytides.com/code-a-packet-sniffer-in-python-with-pcapy-extension/
@@ -164,7 +160,7 @@ class IPv6Handler:
         else:
             print('Protocol: unknown')
             print('Data:')
-            hexdump.hexdump(hdr_length + IPV6_HDR_SIZE)
+            hexdump.hexdump(data[hdr_length + IPV6_HDR_SIZE:])
 
 class IPv6ExtentionHandler:
     def __init__(self, data, hdr_length):
@@ -217,7 +213,7 @@ class IPv6ExtentionHandler:
         else:
             print('Protocol: Unknown')
             print('Data:')
-            hexdump.hexdump(total_hdr_size)
+            hexdump.hexdump(data[total_hdr_size:])
 
 class ICMPHandler:
     def __init__(self, data, hdr_length, ihl):
@@ -250,8 +246,6 @@ class ICMPv6Handler:
 
 class TCPHandler:
     def __init__(self, data, hdr_length, ihl):
-        print('Protocol: TCP')
-
         tcp_hdr = data[hdr_length : hdr_length + TCP_HDR_SIZE]
         tcp_hdr_ = struct.unpack('!HHLLBBHHH', tcp_hdr)
 

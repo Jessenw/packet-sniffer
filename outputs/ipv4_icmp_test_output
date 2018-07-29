@@ -1,0 +1,62 @@
+Opening file: 'tests/ipv4_icmp_test'
+
+Packet #: 1
+Source MAC: 6c:40:08:bc:6d:2c | Destination MAC: fc:75:16:e7:aa:12
+Ethernet Protocol: IPv4
+Source Address: 192.168.0.100 | Destination Address: 192.168.0.1
+Protocol: ICMP
+Type: 3 | Code: 3 | Checksum: 8636
+Ethernet Protocol: IPv4
+Source Address: 192.168.0.1 | Destination Address: 192.168.0.100
+Protocol: UDP
+Source Port: 53 | Destination Port: 55811
+Payload Size: (28)
+Data:
+00000000: 45 00 01 1C 00 00 40 00  40 11 B8 1B C0 A8 00 01  E.....@.@.......
+00000010: C0 A8 00 64 00 35 DA 03  01 08 00 00              ...d.5......
+
+Packet #: 2
+Source MAC: 6c:40:08:bc:6d:2c | Destination MAC: fc:75:16:e7:aa:12
+Ethernet Protocol: IPv4
+Source Address: 192.168.0.100 | Destination Address: 192.168.0.1
+Protocol: ICMP
+Type: 3 | Code: 3 | Checksum: 13348
+Ethernet Protocol: IPv4
+Source Address: 192.168.0.1 | Destination Address: 192.168.0.100
+Protocol: UDP
+Source Port: 53 | Destination Port: 51141
+Payload Size: (28)
+Data:
+00000000: 45 00 00 F2 00 00 40 00  40 11 B8 45 C0 A8 00 01  E.....@.@..E....
+00000010: C0 A8 00 64 00 35 C7 C5  00 DE 00 00              ...d.5......
+
+Packet #: 3
+Source MAC: 6c:40:08:bc:6d:2c | Destination MAC: fc:75:16:e7:aa:12
+Ethernet Protocol: IPv4
+Source Address: 192.168.0.100 | Destination Address: 192.168.0.1
+Protocol: ICMP
+Type: 3 | Code: 3 | Checksum: 3045
+Ethernet Protocol: IPv4
+Source Address: 192.168.0.1 | Destination Address: 192.168.0.100
+Protocol: UDP
+Source Port: 53 | Destination Port: 61450
+Payload Size: (28)
+Data:
+00000000: 45 00 00 EC 00 00 40 00  40 11 B8 4B C0 A8 00 01  E.....@.@..K....
+00000010: C0 A8 00 64 00 35 F0 0A  00 D8 00 00              ...d.5......
+
+Packet #: 4
+Source MAC: 6c:40:08:bc:6d:2c | Destination MAC: fc:75:16:e7:aa:12
+Ethernet Protocol: IPv4
+Source Address: 192.168.0.100 | Destination Address: 192.168.0.1
+Protocol: ICMP
+Type: 3 | Code: 3 | Checksum: 61480
+Ethernet Protocol: IPv4
+Source Address: 192.168.0.1 | Destination Address: 192.168.0.100
+Protocol: UDP
+Source Port: 53 | Destination Port: 3096
+Payload Size: (28)
+Data:
+00000000: 45 00 00 9B 00 00 40 00  40 11 B8 9C C0 A8 00 01  E.....@.@.......
+00000010: C0 A8 00 64 00 35 0C 18  00 87 00 00              ...d.5......
+Complete. 4 packets processed.
