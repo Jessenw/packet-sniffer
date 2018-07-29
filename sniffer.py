@@ -45,10 +45,10 @@ ICMP_HDR_SIZE = 4
 UDP_HDR_SIZE = 8
 
 # types found here: https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol_for_IPv6
-# I got a bit carried away :')
+# I got a bit carried away :') This isnt an exhaustive list
 icmpv6_types = {'1':'Destination Unreachable', '2':'Packet Too Big', '3':'Time exceeded', '4':'Parameter Problem', '128':'Echo Request', 
-                '129':'Echo Reply','130':'MLD', '131':'Multicast Listener Report', '132':'Multicast Listener Done', '133':'Router Solicitation'
-                '134':'Router Advertisement', '135':'Neighbor Solicitation', '136':'Neigbor Advertisement', '137':'Redirect Message'
+                '129':'Echo Reply','130':'MLD', '131':'Multicast Listener Report', '132':'Multicast Listener Done', '133':'Router Solicitation',
+                '134':'Router Advertisement', '135':'Neighbor Solicitation', '136':'Neigbor Advertisement', '137':'Redirect Message',
                 '138':'Router Renumbering', '139':'ICMP Node Information Query', '140':'ICMP Node Information Response', '141':'Inverse Neigbor Discovery Solicitation Message',
                 '142':'Inverse Neighbor Discovery Advertisement Message', '143':'Multicast Listener Discovery', '144':'Home Agent Address Discovery Request Message',
 
@@ -64,8 +64,6 @@ Handles the DataLink header. For this assignment, we only care about IPv4 and IP
 '''
 class EthernetHandler:
     def __init__(self, pkt_dict, data, hdr_length):
-        # print('Ethernet Header Length: {}'.format(hdr_length))
-
         src_mac_addr = mac2str(pkt_dict['source'])
         dest_mac_addr = mac2str(pkt_dict['dest'])
         print('Source MAC: {} | Destination MAC: {}'.format(src_mac_addr, dest_mac_addr))
@@ -176,7 +174,7 @@ class IPv6ExtentionHandler:
         next_header = ipe_hdr_[0]
         next_header_len = (ipe_hdr_[1] + 1) * 8
         total_hdr_size = hdr_length + next_header_len
-        print('Next header: {}\nNext header length: {} (bytes)'.format(next_header, next_header_len))
+        print('Next header length: {} (bytes)'.format(next_header, next_header_len))
         # ICMPv6
         if next_header == 58:
             print('Protocol: ICMPv6')
