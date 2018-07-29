@@ -10,11 +10,14 @@ To run:     python3 sniffer.py packets_file.pcap
 Or:         tcpdump -w - | python3 ./sniffer.py -
 
 Resources used:
-IP Version numbers: https://www.iana.org/assignments/version-numbers/version-numbers.xhtml
 Python Socket Docs: https://docs.python.org/3/library/socket.html
-IP Protocol Numbers: https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers 
-Pacpy Docs: https://rawgit.com/CoreSecurity/pcapy/master/pcapy.html
-Python Struct Docs: https://docs.python.org/3/library/struct.html
+IP Protocol Numbers: https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
+Hexdump docs: https://pypi.org/project/hexdump/
+NWEN302 Lecture slides - Week 1
+
+Sample Captures for IPv6:
+https://wiki.wireshark.org/SampleCaptures
+I used some sample captures from student Kyle Claudio as well as my own
 
 Most of my string formatters came from this example code:
 https://www.binarytides.com/code-a-packet-sniffer-in-python-with-pcapy-extension/
