@@ -29,9 +29,14 @@ import sys
 import ipaddress
 import socket
 
+'''
+Minimum Header sizes (in bytes)
+'''
 ETHERNET_HDR_SIZE = 14
 IPV4_HDR_SIZE = 20
 IPV6_HDR_SIZE = 40
+TCP_HDR_SIZE = 20
+ICMP_HDR_SIZE = 4
 
 def mac2str(mac_bytes):
     mac_string = binascii.hexlify(mac_bytes).decode('ascii')
@@ -165,9 +170,7 @@ class IPv6ExtentionHandler:
 
 class ICMPHandler:
     def __init__(self, data, hdr_length, ihl):
-        i = ihl * 4 + 14
-        icmp_hdr = data[i:i + 4]
-        print(icmp_hdr)
+        icmp_hdr = data[hdr_length : hdr_length + ICMP_HDR_SIZE]
         icmp_hdr_ = struct.unpack('!BBH', icmp_hdr)
         
         type = str(icmp_hdr_[0])
@@ -177,7 +180,7 @@ class ICMPHandler:
 
 class TCPHandler:
     def __init__(self, data, hdr_length, ihl):
-        tcp_hdr = data[hdr_length:hdr_length + 20]
+        tcp_hdr = data[hdr_length : hdr_length + TCP_HDR_SIZE]
         tcp_hdr_ = struct.unpack('!HHLLBBHHH', tcp_hdr)
 
         src_port = str(tcp_hdr_[0])
@@ -185,7 +188,7 @@ class TCPHandler:
         print('Source Port: {} | Destination Port: {}'.format(src_port, dest_port))
 
         tcp_hdr_size = tcp_hdr_[4] >> 4
-        total_hdr_size = 14 + ihl + tcp_hdr_size * 4
+        total_hdr_size = ETHERNET_HDR_SIZE + ihl + tcp_hdr_size * 4
         payload_size = len(data) - total_hdr_size
         print('Payload Size: ({})'.format(payload_size))
         print("Data:")
