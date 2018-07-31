@@ -28,6 +28,7 @@ int main(int argc, char **argv)
     }
 
     pcap_t *handle = pcap_open_offline(argv[1], NULL);
+    // pcap_loop(pcap_t *p, int cnt, pcap_handler callback, u_char *user);
     pcap_loop(handle, 1024*1024, got_packet, NULL);
     pcap_close(handle); 
 
