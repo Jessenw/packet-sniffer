@@ -10,39 +10,38 @@
  *
  * To run: tcpdump -s0 -w - | ./sniffer -
  *     Or: ./sniffer <some file captured from tcpdump or wireshark>
+ * 
+ * struct pcap_pkthdr {
+ *		struct timeval ts; // time stamp 
+ *		bpf_u_int32 caplen; // length of portion present
+ *		bpf_u_int32 len; // length this packet (off wire)
+ *	};
+ *
+ * REFERENCES:
+ * https://www.tcpdump.org/pcap.html
  */
 
 #include <stdio.h>
 #include <pcap.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/if_ether.h>
 
-const struct ether_header *ether;
+#define ETHER_ADDR_LEN 6
 
-char* mac2str(const char* arr)
-{
-    char mac_str[18]; // stored mac address
+/* Ethernet header */
+	struct sniff_ethernet {
+		u_char ether_dhost[ETHER_ADDR_LEN]; /* Destination host address */
+		u_char ether_shost[ETHER_ADDR_LEN]; /* Source host address */
+		u_short ether_type; /* IP? ARP? RARP? etc */
+	};
 
-    if(arr == NULL) return "";
-    snprintf(mac_str, sizeof(mac_str), "%02x:%02x:%02x:%02x:%02x:%02x",
-         arr[0], arr[1], arr[2], arr[3], arr[4], arr[5]);
-
-    return mac_str;
-}
-
-// https://unix.superglobalmegacorp.com/Net2/newsrc/netinet/if_ether.h.html
+/*
+ * args = user arguments, in this case NULL from pcap_loop.
+ * header = information about when the packet was sniffed.
+ * packet = pointer to the first byte of a chunk of data containing the entire packet
+ *          packet should be thought as a collection of structs instead of a string.
+ */
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-    char* src_mac_addr = mac2str(ether->ether_shost);
-    printf("%s\n", src_mac_addr);
-    //printf("Source MAC: %s | Destination MAC: %s\n", ether->ether_shost, ether->ether_dhost);
-    if(ether->ether_type == ntohs(ETHERTYPE_IP)) {
-        printf("Ethernet Protocol: IPv4\n");
-    } else if(ether->ether_type == ntohs(ETHERTYPE_IPV6)) {
-        printf("Ethernet Protocol: IPv6\n");
-    }
-    printf("\n");
+    printf("Header Length: %d\n", header->len);
 }
 
 int main(int argc, char **argv)
@@ -52,9 +51,9 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    pcap_t *handle = pcap_open_offline(argv[1], NULL);
+    pcap_t *handle = pcap_open_offline(argv[1], NULL); // create session handler
     pcap_loop(handle, 1024*1024, got_packet, NULL);
-    pcap_close(handle);
+    pcap_close(handle); 
 
     return 0;
 }
