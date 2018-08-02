@@ -101,13 +101,171 @@ struct sniff_udp {
 
 /* ICMP header */
 struct sniff_icmp {
-
+	u_char type;
+	u_char code;
+	u_short checksum;
+	u_long payload;
 };
 
 /* ICMPv6 header */
 struct sniff_icmpv6 {
-
+	u_char type;
+	u_char code;
+	u_short checksum;
+	u_long payload;
 };
+
+/* prototype functions */
+void ipv4_handler(const u_char *);
+void tcp_handler(const u_char *, const int, const struct sniff_ip *);
+void udp_handler(const u_char *, const int, const struct sniff_ip *);
+void print_hex_ascii_line(const u_char *, int, int);
+void print_payload(const u_char *, int);
+
+void 
+ipv4_handler(const u_char *packet)
+{
+    const struct sniff_ip *ip;
+    int size_ip;
+
+    ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
+    size_ip = IP_HL(ip)*4;
+    if (size_ip < 20) {
+		printf("   * Invalid IP header length: %u bytes\n", size_ip);
+		return;
+	}
+
+    /* print source and destination IP addresses */
+	printf("From: %s\n", inet_ntoa(ip->ip_src));
+	printf("To: %s\n", inet_ntoa(ip->ip_dst));
+	
+	/* determine protocol */	
+	switch(ip->ip_p) {
+		case IPPROTO_TCP:
+			printf("Protocol: TCP\n");
+            tcp_handler(packet, size_ip, ip);
+			break;
+		case IPPROTO_UDP:
+			printf("Protocol: UDP\n");
+			udp_handler(packet, size_ip, ip);
+			return;
+		case IPPROTO_ICMP:
+			printf("Protocol: ICMP\n");
+			return;
+		case IPPROTO_IP:
+			printf("Protocol: IP\n");
+			return;
+		default:
+			printf("Protocol: unknown\n");
+			return;
+	}
+}
+
+void
+tcp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
+{
+    const struct sniff_tcp *tcp; /* The TCP header */
+    const char *payload;         /* Packet payload */
+
+    int size_ip = size_ip_;
+    int size_tcp;
+    int size_payload;
+
+    tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
+	size_tcp = TH_OFF(tcp)*4;
+	if (size_tcp < 20) {
+		printf("* Invalid TCP header length: %u bytes\n", size_tcp);
+		return;
+	}
+	
+	printf("Src port: %d\n", ntohs(tcp->th_sport));
+	printf("Dst port: %d\n", ntohs(tcp->th_dport));
+	
+	/* define/compute tcp payload (segment) offset */
+	payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp);
+	
+	/* compute tcp payload (segment) size */
+	size_payload = ntohs(ip->ip_len) - (size_ip + size_tcp);
+	
+	/*
+	 * Print payload data; it might be binary, so don't just
+	 * treat it as a string.
+	 */
+	if (size_payload > 0) {
+		printf("Payload (%d bytes):\n", size_payload);
+		print_payload(payload, size_payload);
+	}
+}
+
+void
+udp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
+{
+	const struct sniff_udp *udp; /* The UDP header */
+	const char *payload;		 /* Packet payload */
+
+	int size_ip = size_ip_;
+	int size_payload;
+
+	udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + size_ip);
+
+	printf("Src port: %d\n", ntohs(udp->th_sport));
+	printf("Dst port: %d\n", ntohs(udp->th_dport));
+
+	/* define/compute tcp payload (segment) offset */
+	payload = (u_char *)(packet + SIZE_ETHERNET + SIZE_UDP);
+
+	/* compute udp payload (segment) size */
+	
+}
+
+/*
+ * args = user arguments, in this case NULL from pcap_loop.
+ * header = information about when the packet was sniffed.
+ * packet = pointer to the first byte of a chunk of data containing the entire packet
+ *          packet should be thought as a collection of structs instead of a string.
+ */
+void 
+got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
+{
+    printf("\n");
+    static int count = 1;
+
+    const struct sniff_ethernet *ethernet; /* Ethernet handler function */
+
+    printf("Packet #%d\n", count);
+    count++;
+
+    ethernet = (struct sniff_ethernet*)(packet); /* Type case packet to ethernet header */
+
+    /* IPv4 */
+    if(ntohs(ethernet->ether_type) == 2048) {
+        printf("Protocol: IPv4\n");
+        ipv4_handler(packet);
+    }
+    /* IPv6 */
+    else if(ntohs(ethernet->ether_type) == 34525) {
+        printf("Protocol: IPv6\n");
+    } 
+    /* Unknown */
+    else {
+        printf("Protocol: Unknown\n");
+    }
+}
+
+int 
+main(int argc, char **argv)
+{
+    if (argc < 2) {
+        fprintf(stderr, "Must have an argument, either a file name or '-'\n");
+        return -1;
+    }
+
+    pcap_t *handle = pcap_open_offline(argv[1], NULL); // create session handler
+    pcap_loop(handle, 1024*1024, got_packet, NULL);
+    pcap_close(handle); 
+
+    return 0;
+}
 
 /*
  * print data in rows of 16 bytes: offset   hex   ascii
@@ -206,149 +364,4 @@ print_payload(const u_char *payload, int len)
 	}
 
     return;
-}
-
-void 
-tcp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
-{
-    const struct sniff_tcp *tcp; /* The TCP header */
-    const char *payload;         /* Packet payload */
-
-    int size_ip = size_ip_;
-    int size_tcp;
-    int size_payload;
-
-    tcp = (struct sniff_tcp*)(packet + SIZE_ETHERNET + size_ip);
-	size_tcp = TH_OFF(tcp)*4;
-	if (size_tcp < 20) {
-		printf("* Invalid TCP header length: %u bytes\n", size_tcp);
-		return;
-	}
-	
-	printf("Src port: %d\n", ntohs(tcp->th_sport));
-	printf("Dst port: %d\n", ntohs(tcp->th_dport));
-	
-	/* define/compute tcp payload (segment) offset */
-	payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp);
-	
-	/* compute tcp payload (segment) size */
-	size_payload = ntohs(ip->ip_len) - (size_ip + size_tcp);
-	
-	/*
-	 * Print payload data; it might be binary, so don't just
-	 * treat it as a string.
-	 */
-	if (size_payload > 0) {
-		printf("Payload (%d bytes):\n", size_payload);
-		print_payload(payload, size_payload);
-	}
-}
-
-void
-udp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
-{
-	const struct sniff_udp *udp; /* The UDP header */
-	const char *payload;		 /* Packet payload */
-
-	int size_ip = size_ip_;
-	int size_payload;
-
-	udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + size_ip);
-
-	printf("Src port: %d\n", ntohs(udp->th_sport));
-	printf("Dst port: %d\n", ntohs(udp->th_dport));
-
-	/* define/compute tcp payload (segment) offset */
-	payload = (u_char *)(packet + SIZE_ETHERNET + SIZE_UDP);
-
-	/* compute udp payload (segment) size */
-	
-}
-
-void 
-ipv4_handler(const u_char *packet)
-{
-    const struct sniff_ip *ip;
-    int size_ip;
-
-    ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
-    size_ip = IP_HL(ip)*4;
-    if (size_ip < 20) {
-		printf("   * Invalid IP header length: %u bytes\n", size_ip);
-		return;
-	}
-
-    /* print source and destination IP addresses */
-	printf("From: %s\n", inet_ntoa(ip->ip_src));
-	printf("To: %s\n", inet_ntoa(ip->ip_dst));
-	
-	/* determine protocol */	
-	switch(ip->ip_p) {
-		case IPPROTO_TCP:
-			printf("Protocol: TCP\n");
-            tcp_handler(packet, size_ip, ip);
-			break;
-		case IPPROTO_UDP:
-			printf("Protocol: UDP\n");
-			udp_handler(packet, size_ip, ip);
-			return;
-		case IPPROTO_ICMP:
-			printf("Protocol: ICMP\n");
-			return;
-		case IPPROTO_IP:
-			printf("Protocol: IP\n");
-			return;
-		default:
-			printf("Protocol: unknown\n");
-			return;
-	}
-}
-
-/*
- * args = user arguments, in this case NULL from pcap_loop.
- * header = information about when the packet was sniffed.
- * packet = pointer to the first byte of a chunk of data containing the entire packet
- *          packet should be thought as a collection of structs instead of a string.
- */
-void 
-got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
-{
-    printf("\n");
-    static int count = 1;
-
-    const struct sniff_ethernet *ethernet; /* Ethernet handler function */
-
-    printf("Packet #%d\n", count);
-    count++;
-
-    ethernet = (struct sniff_ethernet*)(packet); /* Type case packet to ethernet header */
-
-    /* IPv4 */
-    if(ntohs(ethernet->ether_type) == 2048) {
-        printf("Protocol: IPv4\n");
-        ipv4_handler(packet);
-    }
-    /* IPv6 */
-    else if(ntohs(ethernet->ether_type) == 34525) {
-        printf("Protocol: IPv6\n");
-    } 
-    /* Unknown */
-    else {
-        printf("Protocol: Unknown\n");
-    }
-}
-
-int 
-main(int argc, char **argv)
-{
-    if (argc < 2) {
-        fprintf(stderr, "Must have an argument, either a file name or '-'\n");
-        return -1;
-    }
-
-    pcap_t *handle = pcap_open_offline(argv[1], NULL); // create session handler
-    pcap_loop(handle, 1024*1024, got_packet, NULL);
-    pcap_close(handle); 
-
-    return 0;
 }
