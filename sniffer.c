@@ -1,7 +1,7 @@
 /*
  * sniffer.c
  *
- * By David C Harrison (david.harrison@ecs.vuw.ac.nz) July 2015
+ * By David C Harrison (david.harrison@ecs.vuw.ac.nz) July 2015, Modified by Jesse Williams
  *
  * Use as-is, modification, and/or inclusion in derivative works is permitted only if 
  * the original author is credited. 
@@ -10,12 +10,6 @@
  *
  * To run: tcpdump -s0 -w - | ./sniffer -
  *     Or: ./sniffer <some file captured from tcpdump or wireshark>
- * 
- * struct pcap_pkthdr {
- *		struct timeval ts; // time stamp 
- *		bpf_u_int32 caplen; // length of portion present
- *		bpf_u_int32 len; // length this packet (off wire)
- *	};
  *
  * REFERENCES:
  * https://www.tcpdump.org/pcap.html
@@ -33,8 +27,10 @@
 #include <arpa/inet.h>
 
 #define SIZE_ETHERNET 14
-#define SIZE_UDP 4
 #define ETHER_ADDR_LEN 6
+#define SIZE_UDP 4
+
+#define IP_HL(ip)(((ip)->ip_vhl) & 0x0f)
 
 /* Ethernet header */
 struct sniff_ethernet {
@@ -66,7 +62,7 @@ struct sniff_ipv6 {
 };
 
 /* IPv6 extension header */
-struct sniff_icmpv6 {
+struct sniff_ipv6_extension {
 
 };
 
@@ -97,8 +93,8 @@ struct sniff_tcp {
 
 /* UDP header */
 struct sniff_udp {
-    u_short th_sport;
-	u_short th_dport;
+    u_short th_sport;					/* source port */
+	u_short th_dport;					/* destination port */
 	u_short something;
 	u_short something_;
 };
@@ -112,8 +108,6 @@ struct sniff_icmp {
 struct sniff_icmpv6 {
 
 };
-
-#define IP_HL(ip)(((ip)->ip_vhl) & 0x0f)
 
 /*
  * print data in rows of 16 bytes: offset   hex   ascii
