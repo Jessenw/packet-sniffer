@@ -26,8 +26,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define SIZE_ETHERNET 14
 #define ETHER_ADDR_LEN 6
+#define SIZE_ETHERNET 14
+#define SIZE_IPV6 40
 #define SIZE_UDP 4
 
 #define IP_HL(ip)(((ip)->ip_vhl) & 0x0f)
@@ -41,24 +42,29 @@ struct sniff_ethernet {
 
 /* IP header */
 struct sniff_ip {
-        u_char  ip_vhl;                 /* version << 4 | header length >> 2 */
-        u_char  ip_tos;                 /* type of service */
-        u_short ip_len;                 /* total length */
-        u_short ip_id;                  /* identification */
-        u_short ip_off;                 /* fragment offset field */
-        #define IP_RF 0x8000            /* reserved fragment flag */
-        #define IP_DF 0x4000            /* dont fragment flag */
-        #define IP_MF 0x2000            /* more fragments flag */
-        #define IP_OFFMASK 0x1fff       /* mask for fragmenting bits */
-        u_char  ip_ttl;                 /* time to live */
-        u_char  ip_p;                   /* protocol */
-        u_short ip_sum;                 /* checksum */
-        struct  in_addr ip_src,ip_dst;  /* source and dest address */
+    u_char  ip_vhl;                 	/* version << 4 | header length >> 2 */
+    u_char  ip_tos;                 	/* type of service */
+    u_short ip_len;                 	/* total length */
+    u_short ip_id;                  	/* identification */
+    u_short ip_off;                 	/* fragment offset field */
+    #define IP_RF 0x8000            	/* reserved fragment flag */
+    #define IP_DF 0x4000            	/* dont fragment flag */
+    #define IP_MF 0x2000            	/* more fragments flag */
+    #define IP_OFFMASK 0x1fff       	/* mask for fragmenting bits */
+    u_char  ip_ttl;                 	/* time to live */
+    u_char  ip_p;                   	/* protocol */
+    u_short ip_sum;                 	/* checksum */
+    struct  in_addr ip_src,ip_dst;  	/* source and dest address */
 };
 
 /* IPv6 header */
 struct sniff_ipv6 {
-
+	uint32_t ip_vtf;							/* version then traffic class and flow label */
+    u_short ip_len;								/* header length */
+    u_char  ip_nxt_hdr;							/* next header */
+    u_char  ip_hop_len;							/* hop limit (ttl) */
+    struct in6_addr ip_src;						/* source address */
+	struct in6_addr ip_dest;					/* destination address */
 };
 
 /* IPv6 extension header */
@@ -117,6 +123,7 @@ struct sniff_icmpv6 {
 
 /* prototype functions */
 void ipv4_handler(const u_char *);
+void ipv6_handler(const u_char *);
 void tcp_handler(const u_char *, const int, const struct sniff_ip *);
 void udp_handler(const u_char *, const int, const struct sniff_ip *);
 void icmp_handler(const u_char *, const int, const struct sniff_ip *);
@@ -162,6 +169,21 @@ ipv4_handler(const u_char *packet)
 			printf("Protocol: unknown\n");
 			return;
 	}
+}
+
+void
+ipv6_handler(const u_char *packet)
+{
+	const struct sniff_ipv6 *ipv6;
+
+	ipv6 = (struct sniff_ipv6*)(packet + SIZE_ETHERNET);
+
+	char src_addr[INET6_ADDRSTRLEN];
+	char dest_addr[INET6_ADDRSTRLEN];
+	printf("Src address: %s\n", inet_ntop(AF_INET6, &ipv6->ip_src, src_addr, INET6_ADDRSTRLEN));
+	printf("Dest address: %s\n", inet_ntop(AF_INET6, &ipv6->ip_dest, dest_addr, INET6_ADDRSTRLEN));
+
+	
 }
 
 void
@@ -276,6 +298,7 @@ got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
     /* IPv6 */
     else if(ntohs(ethernet->ether_type) == 34525) {
         printf("Protocol: IPv6\n");
+		ipv6_handler(packet);
     } 
     /* Unknown */
     else {
