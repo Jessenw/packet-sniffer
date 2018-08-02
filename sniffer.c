@@ -33,6 +33,7 @@
 #include <arpa/inet.h>
 
 #define SIZE_ETHERNET 14
+#define SIZE_UDP 4
 #define ETHER_ADDR_LEN 6
 
 /* Ethernet header */
@@ -42,7 +43,7 @@ struct sniff_ethernet {
 	u_short ether_type;                 /* IPv4, IPv6, unknown */
 };
 
-/* IP header [1] */
+/* IP header */
 struct sniff_ip {
         u_char  ip_vhl;                 /* version << 4 | header length >> 2 */
         u_char  ip_tos;                 /* type of service */
@@ -57,6 +58,16 @@ struct sniff_ip {
         u_char  ip_p;                   /* protocol */
         u_short ip_sum;                 /* checksum */
         struct  in_addr ip_src,ip_dst;  /* source and dest address */
+};
+
+/* IPv6 header */
+struct sniff_ipv6 {
+
+};
+
+/* IPv6 extension header */
+struct sniff_icmpv6 {
+
 };
 
 /* TCP header */
@@ -90,6 +101,16 @@ struct sniff_udp {
 	u_short th_dport;
 	u_short something;
 	u_short something_;
+};
+
+/* ICMP header */
+struct sniff_icmp {
+
+};
+
+/* ICMPv6 header */
+struct sniff_icmpv6 {
+
 };
 
 #define IP_HL(ip)(((ip)->ip_vhl) & 0x0f)
@@ -238,11 +259,18 @@ udp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
 	const char *payload;		 /* Packet payload */
 
 	int size_ip = size_ip_;
+	int size_payload;
 
 	udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + size_ip);
 
 	printf("Src port: %d\n", ntohs(udp->th_sport));
 	printf("Dst port: %d\n", ntohs(udp->th_dport));
+
+	/* define/compute tcp payload (segment) offset */
+	payload = (u_char *)(packet + SIZE_ETHERNET + SIZE_UDP);
+
+	/* compute udp payload (segment) size */
+	
 }
 
 void 
