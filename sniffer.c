@@ -42,7 +42,7 @@ struct sniff_ethernet {
 	u_short ether_type;                 /* IPv4, IPv6, unknown */
 };
 
-/* IP header */
+/* IP header [1] */
 struct sniff_ip {
         u_char  ip_vhl;                 /* version << 4 | header length >> 2 */
         u_char  ip_tos;                 /* type of service */
@@ -84,14 +84,24 @@ struct sniff_tcp {
         u_short th_urp;                 /* urgent pointer */
 };
 
+/* UDP header */
+struct sniff_udp {
+    u_short th_sport;
+	u_short th_dport;
+	u_short something;
+	u_short something_;
+};
+
 #define IP_HL(ip)(((ip)->ip_vhl) & 0x0f)
 
 /*
  * print data in rows of 16 bytes: offset   hex   ascii
  *
  * 00000   47 45 54 20 2f 20 48 54  54 50 2f 31 2e 31 0d 0a   GET / HTTP/1.1..
+ * 
+ * [1]
  */
-void
+void 
 print_hex_ascii_line(const u_char *payload, int len, int offset)
 {
 
@@ -141,6 +151,7 @@ return;
 
 /*
  * print packet payload data (avoid printing binary data)
+ * [1]
  */
 void
 print_payload(const u_char *payload, int len)
@@ -184,10 +195,11 @@ print_payload(const u_char *payload, int len)
     return;
 }
 
-void tcp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
+void 
+tcp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
 {
     const struct sniff_tcp *tcp; /* The TCP header */
-    const char *payload;                    /* Packet payload */
+    const char *payload;         /* Packet payload */
 
     int size_ip = size_ip_;
     int size_tcp;
@@ -219,7 +231,22 @@ void tcp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip
 	}
 }
 
-void ipv4_handler(const u_char *packet)
+void
+udp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
+{
+	const struct sniff_udp *udp; /* The UDP header */
+	const char *payload;		 /* Packet payload */
+
+	int size_ip = size_ip_;
+
+	udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + size_ip);
+
+	printf("Src port: %d\n", ntohs(udp->th_sport));
+	printf("Dst port: %d\n", ntohs(udp->th_dport));
+}
+
+void 
+ipv4_handler(const u_char *packet)
 {
     const struct sniff_ip *ip;
     int size_ip;
@@ -243,6 +270,7 @@ void ipv4_handler(const u_char *packet)
 			break;
 		case IPPROTO_UDP:
 			printf("Protocol: UDP\n");
+			udp_handler(packet, size_ip, ip);
 			return;
 		case IPPROTO_ICMP:
 			printf("Protocol: ICMP\n");
@@ -262,7 +290,8 @@ void ipv4_handler(const u_char *packet)
  * packet = pointer to the first byte of a chunk of data containing the entire packet
  *          packet should be thought as a collection of structs instead of a string.
  */
-void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
+void 
+got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
     printf("\n");
     static int count = 1;
@@ -289,7 +318,8 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
     }
 }
 
-int main(int argc, char **argv)
+int 
+main(int argc, char **argv)
 {
     if (argc < 2) {
         fprintf(stderr, "Must have an argument, either a file name or '-'\n");
