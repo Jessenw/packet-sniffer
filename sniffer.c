@@ -21,9 +21,18 @@
  * https://www.tcpdump.org/pcap.html
  */
 
-#include <stdio.h>
 #include <pcap.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
+#define SIZE_ETHERNET 14
 #define ETHER_ADDR_LEN 6
 
 /* Ethernet header */
@@ -41,7 +50,30 @@
  */
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-    printf("Header Length: %d\n", header->len);
+    static int count = 1;
+
+    const struct sniff_ethernet *ethernet; /* Ethernet handler function */
+    const struct sniff_ip *ip;
+
+    printf("Packet #%d\n", count);
+    count++;
+
+    ethernet = (struct sniff_ethernet*)(packet); /* Type case packet to ethernet header */
+
+    /* IPv4 */
+    if(ntohs(ethernet->ether_type) == 2048) {
+        printf("Protocol: IPv4\n");
+    }
+    /* IPv6 */
+    else if(ntohs(ethernet->ether_type) == 34525) {
+        printf("Protocol: IPv6\n");
+    } 
+    /* Unknown */
+    else {
+        printf("Protocol: Unknown\n");
+    }
+
+    ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
 }
 
 int main(int argc, char **argv)
