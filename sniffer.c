@@ -34,8 +34,8 @@
 
 /* Ethernet header */
 struct sniff_ethernet {
-	u_char ether_dhost[ETHER_ADDR_LEN]; /* Destination host address */
-	u_char ether_shost[ETHER_ADDR_LEN]; /* Source host address */
+	u_char ether_dhost[ETHER_ADDR_LEN]; /* sestination host address */
+	u_char ether_shost[ETHER_ADDR_LEN]; /* source host address */
 	u_short ether_type;                 /* IPv4, IPv6, unknown */
 };
 
@@ -95,8 +95,8 @@ struct sniff_tcp {
 struct sniff_udp {
     u_short th_sport;					/* source port */
 	u_short th_dport;					/* destination port */
-	u_short something;
-	u_short something_;
+	u_short len;						/* length */
+	u_short cs;							/* checksum */
 };
 
 /* ICMP header */
@@ -119,7 +119,6 @@ struct sniff_icmpv6 {
 void 
 print_hex_ascii_line(const u_char *payload, int len, int offset)
 {
-
 	int i;
 	int gap;
 	const u_char *ch;
@@ -161,12 +160,11 @@ print_hex_ascii_line(const u_char *payload, int len, int offset)
 
 	printf("\n");
 
-return;
+	return;
 }
 
 /*
  * print packet payload data (avoid printing binary data)
- * [1]
  */
 void
 print_payload(const u_char *payload, int len)
