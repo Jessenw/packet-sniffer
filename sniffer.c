@@ -61,7 +61,7 @@ struct sniff_ip {
 struct sniff_ipv6 {
 	uint32_t ip_vtf;							/* version then traffic class and flow label */
     u_short ip_len;								/* header length */
-    u_char  ip_nxt_hdr;							/* next header */
+    u_int8_t  ip_nxt_hdr;						/* next header */
     u_char  ip_hop_len;							/* hop limit (ttl) */
     struct in6_addr ip_src;						/* source address */
 	struct in6_addr ip_dest;					/* destination address */
@@ -175,6 +175,7 @@ void
 ipv6_handler(const u_char *packet)
 {
 	const struct sniff_ipv6 *ipv6;
+	int protocol;
 
 	ipv6 = (struct sniff_ipv6*)(packet + SIZE_ETHERNET);
 
@@ -183,7 +184,7 @@ ipv6_handler(const u_char *packet)
 	printf("Src address: %s\n", inet_ntop(AF_INET6, &ipv6->ip_src, src_addr, INET6_ADDRSTRLEN));
 	printf("Dest address: %s\n", inet_ntop(AF_INET6, &ipv6->ip_dest, dest_addr, INET6_ADDRSTRLEN));
 
-	
+	printf("%d\n", ipv6->ip_nxt_hdr);
 }
 
 void
