@@ -184,43 +184,7 @@ print_payload(const u_char *payload, int len)
     return;
 }
 
-void ipv4_handler(const u_char *packet)
-{
-    const struct sniff_ip *ip;
-    int size_ip;
-
-    ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
-    size_ip = IP_HL(ip)*4;
-    if (size_ip < 20) {
-		printf("   * Invalid IP header length: %u bytes\n", size_ip);
-		return;
-	}
-
-    /* print source and destination IP addresses */
-	printf("From: %s\n", inet_ntoa(ip->ip_src));
-	printf("To: %s\n", inet_ntoa(ip->ip_dst));
-	
-	/* determine protocol */	
-	switch(ip->ip_p) {
-		case IPPROTO_TCP:
-			printf("Protocol: TCP\n");
-			break;
-		case IPPROTO_UDP:
-			printf("Protocol: UDP\n");
-			return;
-		case IPPROTO_ICMP:
-			printf("Protocol: ICMP\n");
-			return;
-		case IPPROTO_IP:
-			printf("Protocol: IP\n");
-			return;
-		default:
-			printf("Protocol: unknown\n");
-			return;
-	}
-}
-
-void tcp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip ip)
+void tcp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
 {
     const struct sniff_tcp *tcp; /* The TCP header */
     const char *payload;                    /* Packet payload */
@@ -243,7 +207,7 @@ void tcp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip
 	payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp);
 	
 	/* compute tcp payload (segment) size */
-	size_payload = ntohs(ip.ip_len) - (size_ip + size_tcp);
+	size_payload = ntohs(ip->ip_len) - (size_ip + size_tcp);
 	
 	/*
 	 * Print payload data; it might be binary, so don't just
@@ -252,6 +216,43 @@ void tcp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip
 	if (size_payload > 0) {
 		printf("Payload (%d bytes):\n", size_payload);
 		print_payload(payload, size_payload);
+	}
+}
+
+void ipv4_handler(const u_char *packet)
+{
+    const struct sniff_ip *ip;
+    int size_ip;
+
+    ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
+    size_ip = IP_HL(ip)*4;
+    if (size_ip < 20) {
+		printf("   * Invalid IP header length: %u bytes\n", size_ip);
+		return;
+	}
+
+    /* print source and destination IP addresses */
+	printf("From: %s\n", inet_ntoa(ip->ip_src));
+	printf("To: %s\n", inet_ntoa(ip->ip_dst));
+	
+	/* determine protocol */	
+	switch(ip->ip_p) {
+		case IPPROTO_TCP:
+			printf("Protocol: TCP\n");
+            tcp_handler(packet, size_ip, ip);
+			break;
+		case IPPROTO_UDP:
+			printf("Protocol: UDP\n");
+			return;
+		case IPPROTO_ICMP:
+			printf("Protocol: ICMP\n");
+			return;
+		case IPPROTO_IP:
+			printf("Protocol: IP\n");
+			return;
+		default:
+			printf("Protocol: unknown\n");
+			return;
 	}
 }
 
