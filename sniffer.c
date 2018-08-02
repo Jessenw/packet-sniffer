@@ -87,6 +87,59 @@ struct sniff_tcp {
 #define IP_HL(ip)(((ip)->ip_vhl) & 0x0f)
 
 /*
+ * print data in rows of 16 bytes: offset   hex   ascii
+ *
+ * 00000   47 45 54 20 2f 20 48 54  54 50 2f 31 2e 31 0d 0a   GET / HTTP/1.1..
+ */
+void
+print_hex_ascii_line(const u_char *payload, int len, int offset)
+{
+
+	int i;
+	int gap;
+	const u_char *ch;
+
+	/* offset */
+	printf("%05d   ", offset);
+	
+	/* hex */
+	ch = payload;
+	for(i = 0; i < len; i++) {
+		printf("%02x ", *ch);
+		ch++;
+		/* print extra space after 8th byte for visual aid */
+		if (i == 7)
+			printf(" ");
+	}
+	/* print space to handle line less than 8 bytes */
+	if (len < 8)
+		printf(" ");
+	
+	/* fill hex gap with spaces if not full line */
+	if (len < 16) {
+		gap = 16 - len;
+		for (i = 0; i < gap; i++) {
+			printf("   ");
+		}
+	}
+	printf("   ");
+	
+	/* ascii (if printable) */
+	ch = payload;
+	for(i = 0; i < len; i++) {
+		if (isprint(*ch))
+			printf("%c", *ch);
+		else
+			printf(".");
+		ch++;
+	}
+
+	printf("\n");
+
+return;
+}
+
+/*
  * print packet payload data (avoid printing binary data)
  */
 void
@@ -167,9 +220,10 @@ void ipv4_handler(const u_char *packet)
 	}
 }
 
-void tcp_handler(const u_char *packet, const int size_ip_)
+void tcp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip ip)
 {
     const struct sniff_tcp *tcp; /* The TCP header */
+    const char *payload;                    /* Packet payload */
 
     int size_ip = size_ip_;
     int size_tcp;
@@ -189,7 +243,7 @@ void tcp_handler(const u_char *packet, const int size_ip_)
 	payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp);
 	
 	/* compute tcp payload (segment) size */
-	size_payload = ntohs(ip->ip_len) - (size_ip + size_tcp);
+	size_payload = ntohs(ip.ip_len) - (size_ip + size_tcp);
 	
 	/*
 	 * Print payload data; it might be binary, so don't just
