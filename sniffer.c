@@ -119,6 +119,7 @@ struct sniff_icmpv6 {
 void ipv4_handler(const u_char *);
 void tcp_handler(const u_char *, const int, const struct sniff_ip *);
 void udp_handler(const u_char *, const int, const struct sniff_ip *);
+void icmp_handler();
 void print_hex_ascii_line(const u_char *, int, int);
 void print_payload(const u_char *, int);
 
@@ -151,6 +152,7 @@ ipv4_handler(const u_char *packet)
 			return;
 		case IPPROTO_ICMP:
 			printf("Protocol: ICMP\n");
+			icmp_handler(packet, size_ip, ip);
 			return;
 		case IPPROTO_IP:
 			printf("Protocol: IP\n");
@@ -216,6 +218,21 @@ udp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
 
 	/* compute udp payload (segment) size */
 	
+}
+
+void
+icmp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
+{
+	const struct sniff_icmp *icmp; /* The ICMP header */
+	const char *payload;		   /* Packet payload */
+
+	int size_ip = size_ip_;
+	int size_payload;
+
+	icmp = (struct sniff_icmp*)(packet + SIZE_ETHERNET + size_ip);
+
+	printf("Type: %d\n", icmp->type);
+	printf("Code: %d\n", icmp->code);
 }
 
 /*
