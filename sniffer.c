@@ -33,6 +33,14 @@
 
 #define IP_HL(ip)(((ip)->ip_vhl) & 0x0f)
 
+/* IPv6 extension header protocol numbers */
+#define IP6EXTENSION_HOP_BY_HOP 0
+#define IP6EXTENSION_ROUTING 43
+#define IP6EXTENSION_FRAGMENT 44
+#define IPVEXTENSION_DESTINATION_OPTIONS 60
+#define IP6EXTENSION_AUTHENTICATION 51
+#define IP6EXTENSION_SECURITY_PAYLOAD 50
+
 /* Ethernet header */
 struct sniff_ethernet {
 	u_char ether_dhost[ETHER_ADDR_LEN]; /* sestination host address */
@@ -162,9 +170,6 @@ ipv4_handler(const u_char *packet)
 			printf("Protocol: ICMP\n");
 			icmp_handler(packet, size_ip, ip);
 			return;
-		case IPPROTO_IP:
-			printf("Protocol: IP\n");
-			return;
 		default:
 			printf("Protocol: unknown\n");
 			return;
@@ -184,7 +189,20 @@ ipv6_handler(const u_char *packet)
 	printf("Src address: %s\n", inet_ntop(AF_INET6, &ipv6->ip_src, src_addr, INET6_ADDRSTRLEN));
 	printf("Dest address: %s\n", inet_ntop(AF_INET6, &ipv6->ip_dest, dest_addr, INET6_ADDRSTRLEN));
 
-	printf("%d\n", ipv6->ip_nxt_hdr);
+	protocol = ipv6->ip_nxt_hdr;
+	switch(protocol) {
+		case IPPROTO_TCP:
+			printf("Protocol: TCP\n");
+			break;
+		case IPPROTO_UDP:
+			printf("Protocol: UDP\n");
+			return;
+		case IPPROTO_ICMPV6:
+			printf("ProtocolL ICMPv6\n");
+		default:
+			printf("Protocol: unknown\n");
+			return;
+	}
 }
 
 void
