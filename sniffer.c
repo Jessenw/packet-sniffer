@@ -199,6 +199,25 @@ ipv6_handler(const u_char *packet)
 			return;
 		case IPPROTO_ICMPV6:
 			printf("ProtocolL ICMPv6\n");
+			return;
+		case IP6EXTENSION_HOP_BY_HOP:
+			printf("Protocol: Hop-by-hop Header\n");
+			return;
+		case IP6EXTENSION_ROUTING:
+			printf("Protocol: Routing Header\n");
+			return;
+		case IP6EXTENSION_FRAGMENT:
+			printf("Protocol: Fragment Header\n");
+			return;
+		case IPVEXTENSION_DESTINATION_OPTIONS:
+			printf("Protocol: Destinations Options Header\n");
+			return;
+		case IP6EXTENSION_AUTHENTICATION:
+			printf("Protocol: Authentication Header\n");
+			return;
+		case IP6EXTENSION_SECURITY_PAYLOAD:
+			printf("Protocol: Security Payload Header\n");
+			return;
 		default:
 			printf("Protocol: unknown\n");
 			return;
