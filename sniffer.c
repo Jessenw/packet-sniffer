@@ -30,6 +30,7 @@
 #define ETHER_ADDR_LEN 6
 #define SIZE_ETHERNET 14
 #define SIZE_IPV6 40
+#define SIZE_ICMP 8
 #define SIZE_UDP 8
 
 #define IP_HL(ip)(((ip)->ip_vhl) & 0x0f)
@@ -143,13 +144,14 @@ void udp_handler(const u_char *, const int, const int);
 void icmp_handler(const u_char *, const int, const int);
 void icmpv6_handler(const u_char *, const int, const int);
 
+void ipv6_next_header_handler(const u_char *, const int, const int, const int);
 void print_hex_ascii_line(const u_char *, int, int);
 void print_payload(const u_char *, int);
 
 void 
 ipv4_handler(const u_char *packet, int hdr_len, int pkt_len)
 {
-    const struct sniff_ip *ip;
+    const struct sniff_ip *ip; /* The IPv4 header */
     int size_ip;
 
     ip = (struct sniff_ip*)(packet + hdr_len);
@@ -187,8 +189,8 @@ ipv4_handler(const u_char *packet, int hdr_len, int pkt_len)
 void
 ipv6_handler(const u_char *packet, int hdr_len, int pkt_len)
 {
-	const struct sniff_ipv6 *ipv6;
-	int protocol;
+	const struct sniff_ipv6 *ipv6; /* The IPv6 header */
+	int next_hdr;
 	int total_len;
 
 	ipv6 = (struct sniff_ipv6*)(packet + hdr_len);
@@ -198,51 +200,16 @@ ipv6_handler(const u_char *packet, int hdr_len, int pkt_len)
 	printf("Src address: %s\n", inet_ntop(AF_INET6, &ipv6->ip_src, src_addr, INET6_ADDRSTRLEN));
 	printf("Dest address: %s\n", inet_ntop(AF_INET6, &ipv6->ip_dest, dest_addr, INET6_ADDRSTRLEN));
 
-	protocol = ipv6->ip_nxt_hdr;
+	next_hdr = ipv6->ip_nxt_hdr;
 	hdr_len = hdr_len + SIZE_IPV6;
-	switch(protocol) {
-		case IPPROTO_TCP:
-			printf("Protocol: TCP\n");
-			tcp_handler(packet, hdr_len, pkt_len);
-			break;
-		case IPPROTO_UDP:
-			printf("Protocol: UDP\n");
-			udp_handler(packet, hdr_len, pkt_len);
-			return;
-		case IPPROTO_ICMPV6:
-			printf("ProtocolL ICMPv6\n");
-			icmpv6_handler(packet, hdr_len, pkt_len);
-			return;
-		case IP6EXTENSION_HOP_BY_HOP:
-			printf("Protocol: Hop-by-hop Header\n");
-			ipv6_extension_handler(packet, hdr_len, pkt_len);
-			return;
-		case IP6EXTENSION_ROUTING:
-			printf("Protocol: Routing Header\n");
-			ipv6_extension_handler(packet, hdr_len, pkt_len);
-			return;
-		case IP6EXTENSION_FRAGMENT:
-			printf("Protocol: Fragment Header\n");
-			return;
-		case IPVEXTENSION_DESTINATION_OPTIONS:
-			printf("Protocol: Destinations Options Header\n");
-			return;
-		case IP6EXTENSION_AUTHENTICATION:
-			printf("Protocol: Authentication Header\n");
-			return;
-		case IP6EXTENSION_SECURITY_PAYLOAD:
-			printf("Protocol: Security Payload Header\n");
-			return;
-		default:
-			printf("Protocol: unknown\n");
-			return;
-	}
+
+	ipv6_next_header_handler(packet, hdr_len, pkt_len, next_hdr);
 }
 
 void 
 ipv6_extension_handler(const u_char *packet, int hdr_len, int pkt_len)
 {
-	const struct sniff_ipv6_extension *ip6_e; /* the extension header */
+	const struct sniff_ipv6_extension *ip6_e; /* The extension header */
 	int next_hdr;
 	int ip6_e_size;
 
@@ -252,47 +219,8 @@ ipv6_extension_handler(const u_char *packet, int hdr_len, int pkt_len)
 	ip6_e_size = ip6_e->hdr_len;
 
 	hdr_len = hdr_len + ((ip6_e_size + 1) * 8);
-	switch(next_hdr) {
-		case IPPROTO_IPV6:
-			printf("Next header: IPv6\n");
-			ipv6_handler(packet, hdr_len, pkt_len);
-			return;
-		case IPPROTO_TCP:
-			printf("Protocol: TCP\n");
-			tcp_handler(packet, hdr_len, pkt_len);
-			return;
-		case IPPROTO_UDP:
-			printf("Protocol: UDP\n");
-			udp_handler(packet, hdr_len, pkt_len);
-			return;
-		case IPPROTO_ICMPV6:
-			printf("ProtocolL ICMPv6\n");
-			icmpv6_handler(packet, hdr_len, pkt_len);
-			return;
-		case IP6EXTENSION_HOP_BY_HOP:
-			printf("Protocol: Hop-by-hop Header\n");
-			ipv6_extension_handler(packet, hdr_len, pkt_len);
-			return;
-		case IP6EXTENSION_ROUTING:
-			printf("Protocol: Routing Header\n");
-			ipv6_extension_handler(packet, hdr_len, pkt_len);
-			return;
-		case IP6EXTENSION_FRAGMENT:
-			printf("Protocol: Fragment Header\n");
-			return;
-		case IPVEXTENSION_DESTINATION_OPTIONS:
-			printf("Protocol: Destinations Options Header\n");
-			return;
-		case IP6EXTENSION_AUTHENTICATION:
-			printf("Protocol: Authentication Header\n");
-			return;
-		case IP6EXTENSION_SECURITY_PAYLOAD:
-			printf("Protocol: Security Payload Header\n");
-			return;
-		default:
-			printf("Protocol: unknown\n");
-			return;
-	}
+
+	ipv6_next_header_handler(packet, hdr_len, pkt_len, next_hdr);
 }
 
 void
@@ -306,6 +234,7 @@ tcp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 
     tcp = (struct sniff_tcp*)(packet + hdr_len);
 	size_tcp = TH_OFF(tcp)*4;
+
 	if (size_tcp < 20) {
 		printf("* Invalid TCP header length: %u bytes\n", size_tcp);
 		return;
@@ -347,7 +276,7 @@ udp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 	payload = (u_char *)(packet + hdr_len + SIZE_UDP);
 
 	/* compute udp payload (segment) size */
-	size_payload = (pkt_len - (hdr_len + SIZE_UDP));
+	size_payload = pkt_len - (hdr_len + SIZE_UDP);
 
 	/*
 	 * Print payload data; it might be binary, so don't just
@@ -370,7 +299,7 @@ icmp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 	printf("Code: %d\n", icmp->code);
 
 	printf("Protocol: IPv4\n");
-	ipv4_handler(packet, hdr_len + 8, pkt_len);
+	ipv4_handler(packet, hdr_len + SIZE_ICMP, pkt_len);
 }
 
 void
@@ -453,7 +382,59 @@ main(int argc, char **argv)
 }
 
 /*-------------------- Helper Functions --------------------*/
-/* sourced from: https://www.tcpdump.org/sniffex.c */
+
+void
+ipv6_next_header_handler(const u_char *packet, const int hdr_len, const int pkt_len, const int next_hdr)
+{
+	switch(next_hdr) {
+		case IPPROTO_IPV6:
+			printf("Next header: IPv6\n");
+			ipv6_handler(packet, hdr_len, pkt_len);
+			return;
+		case IPPROTO_TCP:
+			printf("Protocol: TCP\n");
+			tcp_handler(packet, hdr_len, pkt_len);
+			return;
+		case IPPROTO_UDP:
+			printf("Protocol: UDP\n");
+			udp_handler(packet, hdr_len, pkt_len);
+			return;
+		case IPPROTO_ICMPV6:
+			printf("ProtocolL ICMPv6\n");
+			icmpv6_handler(packet, hdr_len, pkt_len);
+			return;
+		case IP6EXTENSION_HOP_BY_HOP:
+			printf("Protocol: Hop-by-hop Header\n");
+			ipv6_extension_handler(packet, hdr_len, pkt_len);
+			return;
+		case IP6EXTENSION_ROUTING:
+			printf("Protocol: Routing Header\n");
+			ipv6_extension_handler(packet, hdr_len, pkt_len);
+			return;
+		case IP6EXTENSION_FRAGMENT:
+			printf("Protocol: Fragment Header\n");
+			ipv6_extension_handler(packet, hdr_len, pkt_len);
+			return;
+		case IPVEXTENSION_DESTINATION_OPTIONS:
+			printf("Protocol: Destinations Options Header\n");
+			ipv6_extension_handler(packet, hdr_len, pkt_len);
+			return;
+		case IP6EXTENSION_AUTHENTICATION:
+			printf("Protocol: Authentication Header\n");
+			ipv6_extension_handler(packet, hdr_len, pkt_len);
+			return;
+		case IP6EXTENSION_SECURITY_PAYLOAD:
+			printf("Protocol: Security Payload Header\n");
+			ipv6_extension_handler(packet, hdr_len, pkt_len);
+			return;
+		default:
+			printf("Protocol: unknown\n");
+			return;
+	}
+}
+
+
+/* The following functions were sourced from: https://www.tcpdump.org/sniffex.c */
 
 /*
  * print data in rows of 16 bytes: offset   hex   ascii
