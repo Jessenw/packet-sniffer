@@ -45,6 +45,10 @@
 
 /*-------------------- Header Structures --------------------*/
 
+/* Sniff_ethernet, sniff_ip, sniff_tcp were sourced from 
+ * https://www.tcpdump.org/sniffex.c. I continued this method 
+ * for unpacking each header. */
+
 /* Ethernet header */
 struct sniff_ethernet {
 	u_char ether_dhost[ETHER_ADDR_LEN]; /* sestination host address */
@@ -75,6 +79,8 @@ struct sniff_ipv6 {
     u_short ip_len;						/* payload length */
     u_int8_t  ip_nxt_hdr;				/* next header */
     u_char  ip_hop_len;					/* hop limit (ttl) */
+	/* in6_addr usage sourced from: 
+	   https://stackoverflow.com/questions/18439520/is-there-a-128-bit-integer-in-c */
     struct in6_addr ip_src;				/* source address */
 	struct in6_addr ip_dest;			/* destination address */
 };
@@ -89,25 +95,25 @@ struct sniff_ipv6_extension {
 typedef u_int tcp_seq;
 
 struct sniff_tcp {
-        u_short th_sport;               /* source port */
-        u_short th_dport;               /* destination port */
-        tcp_seq th_seq;                 /* sequence number */
-        tcp_seq th_ack;                 /* acknowledgement number */
-        u_char  th_offx2;               /* data offset, rsvd */
-#define TH_OFF(th)      (((th)->th_offx2 & 0xf0) >> 4)
-        u_char  th_flags;
-        #define TH_FIN  0x01
-        #define TH_SYN  0x02
-        #define TH_RST  0x04
-        #define TH_PUSH 0x08
-        #define TH_ACK  0x10
-        #define TH_URG  0x20
-        #define TH_ECE  0x40
-        #define TH_CWR  0x80
-        #define TH_FLAGS        (TH_FIN|TH_SYN|TH_RST|TH_ACK|TH_URG|TH_ECE|TH_CWR)
-        u_short th_win;                 /* window */
-        u_short th_sum;                 /* checksum */
-        u_short th_urp;                 /* urgent pointer */
+    u_short th_sport;               	/* source port */
+    u_short th_dport;               	/* destination port */
+    tcp_seq th_seq;                 	/* sequence number */
+    tcp_seq th_ack;                 	/* acknowledgement number */
+    u_char  th_offx2;               	/* data offset, rsvd */
+	#define TH_OFF(th) (((th)->th_offx2 & 0xf0) >> 4)
+    u_char  th_flags;
+    #define TH_FIN  0x01
+    #define TH_SYN  0x02
+    #define TH_RST  0x04
+    #define TH_PUSH 0x08
+    #define TH_ACK  0x10
+    #define TH_URG  0x20
+    #define TH_ECE  0x40
+    #define TH_CWR  0x80
+    #define TH_FLAGS (TH_FIN|TH_SYN|TH_RST|TH_ACK|TH_URG|TH_ECE|TH_CWR)
+    u_short th_win;                 	/* window */
+    u_short th_sum;                 	/* checksum */
+    u_short th_urp;                 	/* urgent pointer */
 };
 
 /* UDP header */
@@ -148,6 +154,8 @@ void ipv6_next_header_handler(const u_char *, const int, const int, const int);
 void print_hex_ascii_line(const u_char *, int, int);
 void print_payload(const u_char *, int);
 
+/* Sourced from: https://www.tcpdump.org/sniffex.c 
+   with modifications from myself. */
 void 
 ipv4_handler(const u_char *packet, int hdr_len, int pkt_len)
 {
@@ -223,6 +231,8 @@ ipv6_extension_handler(const u_char *packet, int hdr_len, int pkt_len)
 	ipv6_next_header_handler(packet, hdr_len, pkt_len, next_hdr);
 }
 
+/* Sourced from: https://www.tcpdump.org/sniffex.c 
+   with modifications from myself. */
 void
 tcp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 {
@@ -432,7 +442,6 @@ ipv6_next_header_handler(const u_char *packet, const int hdr_len, const int pkt_
 			return;
 	}
 }
-
 
 /* The following functions were sourced from: https://www.tcpdump.org/sniffex.c */
 
