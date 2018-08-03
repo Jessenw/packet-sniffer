@@ -131,8 +131,8 @@ struct sniff_icmpv6 {
 };
 
 /* prototype functions */
-void ipv4_handler(const u_char *, const int);
-void ipv6_handler(const u_char *, const int);
+void ipv4_handler(const u_char *, const int, const bpf_u_int32);
+void ipv6_handler(const u_char *, const int, const bpf_u_int32);
 void tcp_handler(const u_char *, const int, const int);
 void udp_handler(const u_char *, const int, const struct sniff_ip *);
 void icmp_handler(const u_char *, const int, const struct sniff_ip *);
@@ -141,14 +141,15 @@ void print_hex_ascii_line(const u_char *, int, int);
 void print_payload(const u_char *, int);
 
 void 
-ipv4_handler(const u_char *packet, const int len_)
+ipv4_handler(const u_char *packet, const int hdr_len_, const bpf_u_int32 pkt_len_)
 {
     const struct sniff_ip *ip;
     int size_ip;
 	int total_len;
-	int len = len_;
+	const bpf_u_int32 pkt_len = pkt_len_;
+	int hdr_len = hdr_len_;
 
-    ip = (struct sniff_ip*)(packet + len);
+    ip = (struct sniff_ip*)(packet + hdr_len);
     size_ip = IP_HL(ip)*4;
     if (size_ip < 20) {
 		printf("   * Invalid IP header length: %u bytes\n", size_ip);
@@ -160,14 +161,13 @@ ipv4_handler(const u_char *packet, const int len_)
 	printf("To: %s\n", inet_ntoa(ip->ip_dst));
 
 	total_len = ntohs(ip->ip_len);
-	printf("IP LEN: %d\n", total_len);
 	
 	/* determine protocol */
-	len = len + size_ip;
+	hdr_len = hdr_len + size_ip;
 	switch(ip->ip_p) {
 		case IPPROTO_TCP:
 			printf("Protocol: TCP\n");
-            tcp_handler(packet, len, total_len);
+            tcp_handler(packet, hdr_len, pkt_len);
 			break;
 		case IPPROTO_UDP:
 			printf("Protocol: UDP\n");
@@ -184,7 +184,7 @@ ipv4_handler(const u_char *packet, const int len_)
 }
 
 void
-ipv6_handler(const u_char *packet, const int len)
+ipv6_handler(const u_char *packet, const int len_, const bpf_u_int32 pkt_len)
 {
 	const struct sniff_ipv6 *ipv6;
 	int protocol;
@@ -234,16 +234,15 @@ ipv6_handler(const u_char *packet, const int len)
 }
 
 void
-tcp_handler(const u_char *packet, const int len_, const int total_len)
+tcp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 {
     const struct sniff_tcp *tcp; /* The TCP header */
     const char *payload;         /* Packet payload */
 
-    int len = len_;
     int size_tcp;
     int size_payload;
 
-    tcp = (struct sniff_tcp*)(packet + len);
+    tcp = (struct sniff_tcp*)(packet + hdr_len);
 	size_tcp = TH_OFF(tcp)*4;
 	if (size_tcp < 20) {
 		printf("* Invalid TCP header length: %u bytes\n", size_tcp);
@@ -254,10 +253,10 @@ tcp_handler(const u_char *packet, const int len_, const int total_len)
 	printf("Dst port: %d\n", ntohs(tcp->th_dport));
 	
 	/* define/compute tcp payload (segment) offset */
-	payload = (u_char *)(packet + len + size_tcp);
+	payload = (u_char *)(packet + hdr_len + size_tcp);
 	
 	/* compute tcp payload (segment) size */
-	size_payload = total_len - ((len - SIZE_ETHERNET) + size_tcp);
+	size_payload = pkt_len - (hdr_len + size_tcp);
 	
 	/*
 	 * Print payload data; it might be binary, so don't just
@@ -332,7 +331,7 @@ got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 
     const struct sniff_ethernet *ethernet; /* Ethernet handler function */
 
-    printf("Packet #%d\n", count);
+    printf("Packet #%d, length: %d\n", count, header->len);
     count++;
 
     ethernet = (struct sniff_ethernet*)(packet); /* Type case packet to ethernet header */
@@ -340,12 +339,12 @@ got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
     /* IPv4 */
     if(ntohs(ethernet->ether_type) == 2048) {
         printf("Protocol: IPv4\n");
-        ipv4_handler(packet, SIZE_ETHERNET);
+        ipv4_handler(packet, SIZE_ETHERNET, header->len);
     }
     /* IPv6 */
     else if(ntohs(ethernet->ether_type) == 34525) {
         printf("Protocol: IPv6\n");
-		ipv6_handler(packet, SIZE_ETHERNET);
+		ipv6_handler(packet, SIZE_ETHERNET, header->len);
     } 
     /* Unknown */
     else {
