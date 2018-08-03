@@ -14,6 +14,8 @@
  * REFERENCES:
  * https://www.tcpdump.org/pcap.html
  * https://www.tcpdump.org/sniffex.c
+ * https://stackoverflow.com/questions/18439520/is-there-a-128-bit-integer-in-c
+ * NWEN302 lecture slides
  */
 
 #include <pcap.h>
