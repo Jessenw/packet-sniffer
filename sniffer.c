@@ -162,7 +162,9 @@ void
 ipv4_handler(const u_char *packet, int hdr_len, int pkt_len)
 {
     const struct sniff_ip *ip; /* The IPv4 header */
-    int size_ip;
+	const char *payload;	   /* Packet payload */
+	int size_payload;
+	int size_ip;
 
     ip = (struct sniff_ip*)(packet + hdr_len);
     size_ip = IP_HL(ip)*4;
@@ -192,6 +194,21 @@ ipv4_handler(const u_char *packet, int hdr_len, int pkt_len)
 			return;
 		default:
 			printf("Protocol: unknown\n");
+
+			/* define/compute tcp payload (segment) offset */
+			payload = (u_char *)(packet + hdr_len);
+
+			/* compute udp payload (segment) size */
+			size_payload = pkt_len - hdr_len;
+
+			/*
+	 		 * Print payload data; it might be binary, so don't just
+	 		 * treat it as a string.
+	 		 */
+			if (size_payload > 0) {
+				printf("Payload (%d bytes):\n", size_payload);
+				print_payload(payload, size_payload);
+			}
 			return;
 	}
 }
@@ -398,6 +415,9 @@ main(int argc, char **argv)
 void
 ipv6_next_header_handler(const u_char *packet, const int hdr_len, const int pkt_len, const int next_hdr)
 {
+	const char *payload;	   /* Packet payload */
+	int size_payload;
+	
 	switch(next_hdr) {
 		case IPPROTO_IPV6:
 			printf("Next header: IPv6\n");
@@ -441,6 +461,21 @@ ipv6_next_header_handler(const u_char *packet, const int hdr_len, const int pkt_
 			return;
 		default:
 			printf("Protocol: unknown\n");
+
+			/* define/compute tcp payload (segment) offset */
+			payload = (u_char *)(packet + hdr_len);
+
+			/* compute udp payload (segment) size */
+			size_payload = pkt_len - hdr_len;
+
+			/*
+	 		 * Print payload data; it might be binary, so don't just
+	 		 * treat it as a string.
+	 		 */
+			if (size_payload > 0) {
+				printf("Payload (%d bytes):\n", size_payload);
+				print_payload(payload, size_payload);
+			}
 			return;
 	}
 }
