@@ -368,6 +368,9 @@ icmp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 
 	printf("Type: %d\n", icmp->type);
 	printf("Code: %d\n", icmp->code);
+
+	printf("Protocol: IPv4\n");
+	ipv4_handler(packet, hdr_len + 8, pkt_len);
 }
 
 void
@@ -416,6 +419,7 @@ got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 	/* If the ip protocol is unknown, print the rest of the packet */
     else {
         printf("Protocol: Unknown\n");
+
 		/* define/compute tcp payload (segment) offset */
 		payload = (u_char *)(packet + SIZE_ETHERNET);
 
