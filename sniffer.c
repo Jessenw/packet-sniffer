@@ -138,7 +138,7 @@ void ipv6_extension_handler(const u_char *, int, int);
 void tcp_handler(const u_char *, const int, const int);
 void udp_handler(const u_char *, const int, const int);
 void icmp_handler(const u_char *, const int, const int);
-void icmpv6_handler(const u_char *, const int, const struct sniff_ip *);
+void icmpv6_handler(const u_char *, const int, const int);
 void print_hex_ascii_line(const u_char *, int, int);
 void print_payload(const u_char *, int);
 
@@ -203,9 +203,11 @@ ipv6_handler(const u_char *packet, int hdr_len, int pkt_len)
 			break;
 		case IPPROTO_UDP:
 			printf("Protocol: UDP\n");
+			udp_handler(packet, hdr_len, pkt_len);
 			return;
 		case IPPROTO_ICMPV6:
 			printf("ProtocolL ICMPv6\n");
+			icmpv6_handler(packet, hdr_len, pkt_len);
 			return;
 		case IP6EXTENSION_HOP_BY_HOP:
 			printf("Protocol: Hop-by-hop Header\n");
@@ -257,9 +259,11 @@ ipv6_extension_handler(const u_char *packet, int hdr_len, int pkt_len)
 			return;
 		case IPPROTO_UDP:
 			printf("Protocol: UDP\n");
+			udp_handler(packet, hdr_len, pkt_len);
 			return;
 		case IPPROTO_ICMPV6:
 			printf("ProtocolL ICMPv6\n");
+			icmpv6_handler(packet, hdr_len, pkt_len);
 			return;
 		case IP6EXTENSION_HOP_BY_HOP:
 			printf("Protocol: Hop-by-hop Header\n");
@@ -355,7 +359,6 @@ void
 icmp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 {
 	const struct sniff_icmp *icmp; /* The ICMP header */
-	const char *payload;		   /* Packet payload */
 
 	icmp = (struct sniff_icmp*)(packet + hdr_len);
 
@@ -364,14 +367,11 @@ icmp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 }
 
 void
-icmpv6_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
+icmpv6_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 {
 	const struct sniff_icmpv6 *icmpv6; /* The ICMPv6 header */
-	const char *payload;			   /* Packet payload */
 
-	int size_ip = size_ip_;
-
-	icmpv6 = (struct sniff_icmp*)(packet + SIZE_ETHERNET + size_ip);
+	icmpv6 = (struct sniff_icmp*)(packet + hdr_len);
 
 	printf("Type: %d\n", icmpv6->type);
 	printf("Code: %d\n", icmpv6->code);
