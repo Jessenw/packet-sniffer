@@ -42,6 +42,8 @@
 #define IP6EXTENSION_AUTHENTICATION 51
 #define IP6EXTENSION_SECURITY_PAYLOAD 50
 
+/*-------------------- Header Structures --------------------*/
+
 /* Ethernet header */
 struct sniff_ethernet {
 	u_char ether_dhost[ETHER_ADDR_LEN]; /* sestination host address */
@@ -111,8 +113,8 @@ struct sniff_tcp {
 struct sniff_udp {
     u_short th_sport;					/* source port */
 	u_short th_dport;					/* destination port */
-	u_short len;						/* length */
-	u_short cs;							/* checksum */
+	u_short len;						/* length of udp header */
+	u_short checksum;
 };
 
 /* ICMP header */
@@ -135,10 +137,12 @@ struct sniff_icmpv6 {
 void ipv4_handler(const u_char *, int, int);
 void ipv6_handler(const u_char *, int, int);
 void ipv6_extension_handler(const u_char *, int, int);
+
 void tcp_handler(const u_char *, const int, const int);
 void udp_handler(const u_char *, const int, const int);
 void icmp_handler(const u_char *, const int, const int);
 void icmpv6_handler(const u_char *, const int, const int);
+
 void print_hex_ascii_line(const u_char *, int, int);
 void print_payload(const u_char *, int);
 
@@ -386,29 +390,46 @@ icmpv6_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 void 
 got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-    printf("\n");
-    static int count = 1;
+	const struct sniff_ethernet *ethernet; /* Ethernet handler function */
 
-    const struct sniff_ethernet *ethernet; /* Ethernet handler function */
+	static int cnt = 1; 	   /* Keep track of what # the current packet is */
+	int pkt_len = header->len; /* The total length of the packet */
+	const char *payload;	   /* Packet payload */
+	int size_payload;
 
-    printf("Packet #%d\n", count);
-    count++;
+    printf("\n"); /* Create a new line between each packet when printing */
+
+    printf("Packet #%d\n", cnt);
+    cnt++;
 
     ethernet = (struct sniff_ethernet*)(packet); /* Type case packet to ethernet header */
 
-    /* IPv4 */
-    if(ntohs(ethernet->ether_type) == 2048) {
+    /* Compute which ip protocol this packet is */
+    if (ntohs(ethernet->ether_type) == 2048) {
         printf("Protocol: IPv4\n");
         ipv4_handler(packet, SIZE_ETHERNET, header->len);
     }
-    /* IPv6 */
-    else if(ntohs(ethernet->ether_type) == 34525) {
+    else if (ntohs(ethernet->ether_type) == 34525) {
         printf("Protocol: IPv6\n");
 		ipv6_handler(packet, SIZE_ETHERNET, header->len);
-    } 
-    /* Unknown */
+    }
+	/* If the ip protocol is unknown, print the rest of the packet */
     else {
         printf("Protocol: Unknown\n");
+		/* define/compute tcp payload (segment) offset */
+		payload = (u_char *)(packet + SIZE_ETHERNET);
+
+		/* compute udp payload (segment) size */
+		size_payload = pkt_len - SIZE_ETHERNET;
+
+		/*
+	 	 * Print payload data; it might be binary, so don't just
+	 	 * treat it as a string.
+	 	 */
+		if (size_payload > 0) {
+			printf("Payload (%d bytes):\n", size_payload);
+			print_payload(payload, size_payload);
+		}
     }
 }
 
@@ -426,6 +447,9 @@ main(int argc, char **argv)
 
     return 0;
 }
+
+/*-------------------- Helper Functions --------------------*/
+/* sourced from: https://www.tcpdump.org/sniffex.c */
 
 /*
  * print data in rows of 16 bytes: offset   hex   ascii
