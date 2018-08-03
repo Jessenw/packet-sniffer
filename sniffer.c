@@ -162,7 +162,7 @@ void
 ipv4_handler(const u_char *packet, int hdr_len, int pkt_len)
 {
     const struct sniff_ip *ip; /* The IPv4 header */
-	const char *payload;	   /* Packet payload */
+	u_char *payload;	   /* Packet payload */
 	int size_payload;
 	int size_ip;
 
@@ -256,7 +256,7 @@ void
 tcp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 {
     const struct sniff_tcp *tcp; /* The TCP header */
-    const char *payload;         /* Packet payload */
+    u_char *payload;         /* Packet payload */
 
     int size_tcp;
     int size_payload;
@@ -292,7 +292,7 @@ void
 udp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 {
 	const struct sniff_udp *udp; /* The UDP header */
-	const char *payload;		 /* Packet payload */
+	u_char *payload;		 /* Packet payload */
 
 	int size_payload;
 
@@ -334,9 +334,9 @@ icmp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 void
 icmpv6_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 {
-	const struct sniff_icmpv6 *icmpv6; /* The ICMPv6 header */
+	struct sniff_icmpv6 *icmpv6; /* The ICMPv6 header */
 
-	icmpv6 = (struct sniff_icmp*)(packet + hdr_len);
+	icmpv6 = (struct sniff_icmpv6*)(packet + hdr_len);
 
 	printf("Type: %d\n", icmpv6->type);
 	printf("Code: %d\n", icmpv6->code);
@@ -355,7 +355,7 @@ got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 
 	static int cnt = 1; 	   /* Keep track of what # the current packet is */
 	int pkt_len = header->len; /* The total length of the packet */
-	const char *payload;	   /* Packet payload */
+	u_char *payload;	   /* Packet payload */
 	int size_payload;
 
     printf("\n"); /* Create a new line between each packet when printing */
@@ -415,7 +415,7 @@ main(int argc, char **argv)
 void
 ipv6_next_header_handler(const u_char *packet, const int hdr_len, const int pkt_len, const int next_hdr)
 {
-	const char *payload;	   /* Packet payload */
+	u_char *payload;	   /* Packet payload */
 	int size_payload;
 	
 	switch(next_hdr) {
