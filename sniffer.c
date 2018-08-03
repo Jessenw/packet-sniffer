@@ -30,7 +30,7 @@
 #define ETHER_ADDR_LEN 6
 #define SIZE_ETHERNET 14
 #define SIZE_IPV6 40
-#define SIZE_UDP 4
+#define SIZE_UDP 8
 
 #define IP_HL(ip)(((ip)->ip_vhl) & 0x0f)
 
@@ -134,7 +134,7 @@ struct sniff_icmpv6 {
 void ipv4_handler(const u_char *, int, int);
 void ipv6_handler(const u_char *, int, int);
 void tcp_handler(const u_char *, const int, const int);
-void udp_handler(const u_char *, const int, const struct sniff_ip *);
+void udp_handler(const u_char *, const int, const int);
 void icmp_handler(const u_char *, const int, const struct sniff_ip *);
 void icmpv6_handler(const u_char *, const int, const struct sniff_ip *);
 void print_hex_ascii_line(const u_char *, int, int);
@@ -166,7 +166,7 @@ ipv4_handler(const u_char *packet, int hdr_len, int pkt_len)
 			break;
 		case IPPROTO_UDP:
 			printf("Protocol: UDP\n");
-			udp_handler(packet, size_ip, pkt_len);
+			udp_handler(packet, hdr_len, pkt_len);
 			return;
 		case IPPROTO_ICMP:
 			printf("Protocol: ICMP\n");
@@ -265,24 +265,32 @@ tcp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 }
 
 void
-udp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
+udp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 {
 	const struct sniff_udp *udp; /* The UDP header */
 	const char *payload;		 /* Packet payload */
 
-	int size_ip = size_ip_;
 	int size_payload;
 
-	udp = (struct sniff_udp*)(packet + SIZE_ETHERNET + size_ip);
+	udp = (struct sniff_udp*)(packet + hdr_len);
 
 	printf("Src port: %d\n", ntohs(udp->th_sport));
 	printf("Dst port: %d\n", ntohs(udp->th_dport));
 
 	/* define/compute tcp payload (segment) offset */
-	payload = (u_char *)(packet + SIZE_ETHERNET + SIZE_UDP);
+	payload = (u_char *)(packet + hdr_len + SIZE_UDP);
 
 	/* compute udp payload (segment) size */
-	
+	size_payload = (pkt_len - (hdr_len + SIZE_UDP));
+
+	/*
+	 * Print payload data; it might be binary, so don't just
+	 * treat it as a string.
+	 */
+	if (size_payload > 0) {
+		printf("Payload (%d bytes):\n", size_payload);
+		print_payload(payload, size_payload);
+	}
 }
 
 void
@@ -327,7 +335,7 @@ got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 
     const struct sniff_ethernet *ethernet; /* Ethernet handler function */
 
-    printf("Packet #%d", count);
+    printf("Packet #%d\n", count);
     count++;
 
     ethernet = (struct sniff_ethernet*)(packet); /* Type case packet to ethernet header */
