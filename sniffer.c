@@ -68,17 +68,18 @@ struct sniff_ip {
 
 /* IPv6 header */
 struct sniff_ipv6 {
-	uint32_t ip_vtf;							/* version then traffic class and flow label */
-    u_short ip_len;								/* payload length */
-    u_int8_t  ip_nxt_hdr;						/* next header */
-    u_char  ip_hop_len;							/* hop limit (ttl) */
-    struct in6_addr ip_src;						/* source address */
-	struct in6_addr ip_dest;					/* destination address */
+	uint32_t ip_vtf;					/* version then traffic class and flow label */
+    u_short ip_len;						/* payload length */
+    u_int8_t  ip_nxt_hdr;				/* next header */
+    u_char  ip_hop_len;					/* hop limit (ttl) */
+    struct in6_addr ip_src;				/* source address */
+	struct in6_addr ip_dest;			/* destination address */
 };
 
 /* IPv6 extension header */
 struct sniff_ipv6_extension {
-
+	u_int8_t nxt_hdr;					/* next header */
+	u_int8_t hdr_len;					/* length of this header */
 };
 
 /* TCP header */
@@ -133,9 +134,10 @@ struct sniff_icmpv6 {
 /* prototype functions */
 void ipv4_handler(const u_char *, int, int);
 void ipv6_handler(const u_char *, int, int);
+void ipv6_extension_handler(const u_char *, int, int);
 void tcp_handler(const u_char *, const int, const int);
 void udp_handler(const u_char *, const int, const int);
-void icmp_handler(const u_char *, const int, const struct sniff_ip *);
+void icmp_handler(const u_char *, const int, const int);
 void icmpv6_handler(const u_char *, const int, const struct sniff_ip *);
 void print_hex_ascii_line(const u_char *, int, int);
 void print_payload(const u_char *, int);
@@ -170,7 +172,7 @@ ipv4_handler(const u_char *packet, int hdr_len, int pkt_len)
 			return;
 		case IPPROTO_ICMP:
 			printf("Protocol: ICMP\n");
-			icmp_handler(packet, size_ip, pkt_len);
+			icmp_handler(packet, hdr_len, pkt_len);
 			return;
 		default:
 			printf("Protocol: unknown\n");
@@ -207,9 +209,65 @@ ipv6_handler(const u_char *packet, int hdr_len, int pkt_len)
 			return;
 		case IP6EXTENSION_HOP_BY_HOP:
 			printf("Protocol: Hop-by-hop Header\n");
+			ipv6_extension_handler(packet, hdr_len, pkt_len);
 			return;
 		case IP6EXTENSION_ROUTING:
 			printf("Protocol: Routing Header\n");
+			ipv6_extension_handler(packet, hdr_len, pkt_len);
+			return;
+		case IP6EXTENSION_FRAGMENT:
+			printf("Protocol: Fragment Header\n");
+			return;
+		case IPVEXTENSION_DESTINATION_OPTIONS:
+			printf("Protocol: Destinations Options Header\n");
+			return;
+		case IP6EXTENSION_AUTHENTICATION:
+			printf("Protocol: Authentication Header\n");
+			return;
+		case IP6EXTENSION_SECURITY_PAYLOAD:
+			printf("Protocol: Security Payload Header\n");
+			return;
+		default:
+			printf("Protocol: unknown\n");
+			return;
+	}
+}
+
+void 
+ipv6_extension_handler(const u_char *packet, int hdr_len, int pkt_len)
+{
+	const struct sniff_ipv6_extension *ip6_e; /* the extension header */
+	int next_hdr;
+	int ip6_e_size;
+
+	ip6_e = (struct sniff_ipv6_extension*)(packet + hdr_len);
+
+	next_hdr = ip6_e->nxt_hdr;
+	ip6_e_size = ip6_e->hdr_len;
+
+	hdr_len = hdr_len + ((ip6_e_size + 1) * 8);
+	switch(next_hdr) {
+		case IPPROTO_IPV6:
+			printf("Next header: IPv6\n");
+			ipv6_handler(packet, hdr_len, pkt_len);
+			return;
+		case IPPROTO_TCP:
+			printf("Protocol: TCP\n");
+			tcp_handler(packet, hdr_len, pkt_len);
+			return;
+		case IPPROTO_UDP:
+			printf("Protocol: UDP\n");
+			return;
+		case IPPROTO_ICMPV6:
+			printf("ProtocolL ICMPv6\n");
+			return;
+		case IP6EXTENSION_HOP_BY_HOP:
+			printf("Protocol: Hop-by-hop Header\n");
+			ipv6_extension_handler(packet, hdr_len, pkt_len);
+			return;
+		case IP6EXTENSION_ROUTING:
+			printf("Protocol: Routing Header\n");
+			ipv6_extension_handler(packet, hdr_len, pkt_len);
 			return;
 		case IP6EXTENSION_FRAGMENT:
 			printf("Protocol: Fragment Header\n");
@@ -294,14 +352,12 @@ udp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 }
 
 void
-icmp_handler(const u_char *packet, const int size_ip_, const struct sniff_ip *ip)
+icmp_handler(const u_char *packet, const int hdr_len, const int pkt_len)
 {
 	const struct sniff_icmp *icmp; /* The ICMP header */
 	const char *payload;		   /* Packet payload */
 
-	int size_ip = size_ip_;
-
-	icmp = (struct sniff_icmp*)(packet + SIZE_ETHERNET + size_ip);
+	icmp = (struct sniff_icmp*)(packet + hdr_len);
 
 	printf("Type: %d\n", icmp->type);
 	printf("Code: %d\n", icmp->code);
@@ -373,10 +429,7 @@ main(int argc, char **argv)
 
 /*
  * print data in rows of 16 bytes: offset   hex   ascii
- *
  * 00000   47 45 54 20 2f 20 48 54  54 50 2f 31 2e 31 0d 0a   GET / HTTP/1.1..
- * 
- * [1]
  */
 void 
 print_hex_ascii_line(const u_char *payload, int len, int offset)
